@@ -30,11 +30,11 @@ describe('HubApiModel', () => {
     const req = {
       res: {
         locals: {
-          hubSearchRequest: {
-            siteIdentifier: 'https://hub.site',
-            collectionKey: 'dataset'
-          }
+          siteIdentifier: 'https://my-site.hub.arcgis.com'
         }
+      },
+      params: {
+        id: 'dataset'
       },
       query: {}
     } as unknown as Request;
@@ -56,6 +56,29 @@ describe('HubApiModel', () => {
     }
   });
 
+  it('throws error if siteIdentifier is not provided', async () => {
+    (axios.get as jest.Mock).mockRejectedValue(Error('hub search error'));
+    const model = new HubApiModel();
+
+    const req = {
+      res: {
+        locals: {}
+      },
+      params: {
+        id: 'dataset'
+      },
+      query: {}
+    } as unknown as Request;
+
+    // Test and Assert
+    try {
+      await model.getStream(req);
+      fail('should not reach here!');
+    } catch (err) {
+      expect(err.message).toEqual('siteIdentifier not provided');
+    }
+  });
+
   it('throws error if hub search returns an error', async () => {
     (axios.get as jest.Mock).mockRejectedValue(Error('hub search error'));
     const model = new HubApiModel();
@@ -63,11 +86,11 @@ describe('HubApiModel', () => {
     const req = {
       res: {
         locals: {
-          hubSearchRequest: {
-            siteIdentifier: 'https://hub.site',
-            collectionKey: 'dataset'
-          }
+          siteIdentifier: 'https://my-site.hub.arcgis.com'
         }
+      },
+      params: {
+        id: 'dataset'
       },
       query: {}
     } as unknown as Request;

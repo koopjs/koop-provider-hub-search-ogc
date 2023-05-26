@@ -6,18 +6,24 @@ export class HubApiModel {
 
   async getStream(request: Request) {
     const {
-      res: { 
-        locals: { 
-          hubSearchRequest: { siteIdentifier, collectionKey } 
-        } 
+      res: {
+        locals: {
+          siteIdentifier
+        }
       },
-      query
+      params: {
+        id
+      }
     } = request;
+
+    if(!siteIdentifier) {
+      throw Error('siteIdentifier not provided');
+    }
 
     const pagingStreams: PagingStream = await getOgcItemsStream(
       siteIdentifier,
-      collectionKey,
-      query
+      id,
+      request.query
     );
 
     return pagingStreams;

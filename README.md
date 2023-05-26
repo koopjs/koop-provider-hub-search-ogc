@@ -14,10 +14,7 @@ This provider plugin currently only supports [streaming](https://nodejs.org/api/
 ### Define Search Parameters
 To perform a search from an output plugin, attach onto the response.
 ```js
-req.res.locals.hubSearchRequest = {
-  siteIdentifier: 'my-site.hub.arcgis.com',
-  collectionKey:'collection-key'
-}
+req.res.locals.siteIdentifier = 'my-site.hub.arcgis.com'
 ```
 
 
@@ -32,10 +29,7 @@ What you have now is a Node.js `Readable` stream. You can pipe the datasets from
 
 ```js
 async handleRequest (req, res) {
-  req.res.locals.hubSearchRequest = {
-    siteIdentifier: 'my-site.hub.arcgis.com',
-    collectionKey:'collection-key'
-  }
+  req.res.locals.siteIdentifier = 'my-site.hub.arcgis.com'
 
   const docStream = await this.model.pullStream(req);
 

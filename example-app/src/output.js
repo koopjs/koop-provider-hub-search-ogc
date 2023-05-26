@@ -4,17 +4,14 @@ class Output {
   static type = 'output';
   static routes = [
     {
-      path: '/content',
+      path: '/items',
       methods: ['get'],
       handler: 'serve'
     }
   ];
 
   async serve (req, res) {
-    req.res.locals.hubSearchRequest = {
-      collectionKey: 'dataset',
-      siteIdentifier: 'https://opendata.dc.gov'
-    };
+    req.res.locals.siteIdentifier = 'https://opendata.dc.gov';
     
     const docStream = await this.model.pullStream(req);
 

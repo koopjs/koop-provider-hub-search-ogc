@@ -12,7 +12,7 @@ describe('getOgcItemsStream function', () => {
 
   it('should create paging stream with default limit and start index', async () => {
     // Setup
-    const siteUrl = 'https://hub.site'
+    const siteUrl = 'https://my-site.hub.arcgis.com'
     const collectionKey = 'dataset'
     const requestQuery = {};
     // Test
@@ -21,7 +21,7 @@ describe('getOgcItemsStream function', () => {
       expect(stream).toBeDefined();
       expect(getPagingStreamSpy).toHaveBeenCalledTimes(1);
       expect(getPagingStreamSpy).toHaveBeenCalledWith(
-        'https://hub.site/api/search/v1/collections/dataset/items?limit=100&startindex=1',
+        'https://my-site.hub.arcgis.com/api/search/v1/collections/dataset/items?limit=100&startindex=1',
         undefined
       );
     } catch (err) {
@@ -31,7 +31,7 @@ describe('getOgcItemsStream function', () => {
 
   it('should create paging stream with limit from query', async () => {
     // Setup
-    const siteUrl = 'https://hub.site'
+    const siteUrl = 'https://my-site.hub.arcgis.com'
     const collectionKey = 'dataset'
     const requestQuery = { limit: 50 } as unknown as QueryString.ParsedQs;
     // Test
@@ -40,7 +40,7 @@ describe('getOgcItemsStream function', () => {
       expect(stream).toBeDefined();
       expect(getPagingStreamSpy).toHaveBeenCalledTimes(1);
       expect(getPagingStreamSpy).toHaveBeenCalledWith(
-        'https://hub.site/api/search/v1/collections/dataset/items?limit=50&startindex=1', 
+        'https://my-site.hub.arcgis.com/api/search/v1/collections/dataset/items?limit=50&startindex=1', 
         1
       );
     } catch (err) {
@@ -50,7 +50,7 @@ describe('getOgcItemsStream function', () => {
 
   it('should create paging stream with default limit and page limit if request query limit is greater than 100', async () => {
     // Setup
-    const siteUrl = 'https://hub.site'
+    const siteUrl = 'https://my-site.hub.arcgis.com'
     const collectionKey = 'dataset'
     const requestQuery = { limit: 150 } as unknown as QueryString.ParsedQs;
     // Test
@@ -59,7 +59,7 @@ describe('getOgcItemsStream function', () => {
       expect(stream).toBeDefined();
       expect(getPagingStreamSpy).toHaveBeenCalledTimes(1);
       expect(getPagingStreamSpy).toHaveBeenCalledWith(
-        'https://hub.site/api/search/v1/collections/dataset/items?limit=100&startindex=1', 
+        'https://my-site.hub.arcgis.com/api/search/v1/collections/dataset/items?limit=100&startindex=1', 
         1
       );
     } catch (err) {
@@ -69,7 +69,7 @@ describe('getOgcItemsStream function', () => {
 
   it('should create paging stream with startindex from query', async () => {
     // Setup
-    const siteUrl = 'https://hub.site'
+    const siteUrl = 'https://my-site.hub.arcgis.com'
     const collectionKey = 'dataset'
     const requestQuery = { startindex: 600 } as unknown as QueryString.ParsedQs;
     // Test
@@ -78,7 +78,7 @@ describe('getOgcItemsStream function', () => {
       expect(stream).toBeDefined();
       expect(getPagingStreamSpy).toHaveBeenCalledTimes(1);
       expect(getPagingStreamSpy).toHaveBeenCalledWith(
-        'https://hub.site/api/search/v1/collections/dataset/items?startindex=600&limit=100', 
+        'https://my-site.hub.arcgis.com/api/search/v1/collections/dataset/items?startindex=600&limit=100', 
         undefined
       );
     } catch (err) {
