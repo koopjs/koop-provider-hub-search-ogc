@@ -1,9 +1,5 @@
 # Koop Provider Hub Search OGC
 
-[![TypeScript version][ts-badge]][typescript-4-3]
-[![Node.js version][nodejs-badge]][nodejs]
-[![APLv2][license-badge]][license]
-[![Build Status - GitHub Actions][gha-badge]][gha-ci]
 ![Coverage](./coverage.svg)
 
 This is a Koop provider that extracts datasets from the ArcGIS Hub Search OGC API.
