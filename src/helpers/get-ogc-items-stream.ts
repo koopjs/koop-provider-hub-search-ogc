@@ -4,8 +4,9 @@ import * as _ from 'lodash';
 export const getOgcItemsStream = 
   async (siteUrl: string, collectionKey: string, requestQuery: Record<string, any>): Promise<PagingStream> => {
   const requestUrl = buildSearchRequestUrl(siteUrl, collectionKey, requestQuery);
-  // OGC API can only return 100 results at maximum so
-  // page limit is set to 1 regardless of the actual
+  // OGC Search API can only return 100 results at maximum if limit is 
+  // provided in the request query and the limit is over 100.
+  // So, page limit is set to 1 regardless of the actual
   // value of limit provided in the request query
   const maxPageLimit = requestQuery.limit && 1;
   return getPagingStream(
