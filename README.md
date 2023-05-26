@@ -10,7 +10,7 @@ This provider plugin currently only supports [streaming](https://nodejs.org/api/
 ### Define Search Parameters
 To perform a search from an output plugin, attach onto the response.
 ```js
-req.res.locals.siteIdentifier = 'my-site.hub.arcgis.com'
+req.res.locals.siteIdentifier = 'https://my-site.hub.arcgis.com'
 ```
 
 

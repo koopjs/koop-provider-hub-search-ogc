@@ -20,9 +20,5 @@ module.exports = {
   ],
   clearMocks: true,
   modulePathIgnorePatterns: ['<rootDir>/build'],
-  // coverageReporters: [
-  //   "lcov",
-  //   "json-summary"
-  // ],
   coverageReporters: ["cobertura", "lcov", "text"],
 };
