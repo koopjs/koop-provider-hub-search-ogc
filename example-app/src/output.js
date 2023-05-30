@@ -1,4 +1,4 @@
-const through2 = require('through2');
+const { Transform } = require('readable-stream')
 
 class Output {
   static type = 'output';
@@ -11,18 +11,23 @@ class Output {
   ];
 
   async serve (req, res) {
-    req.res.locals.siteIdentifier = 'https://opendata.dc.gov';
+    req.res.locals.siteIdentifier = 'https://datahub-dc-dcgis.hub.arcgis.com';
     
     const docStream = await this.model.pullStream(req);
 
     docStream
-      .pipe(through2.obj(function (chunk, enc, callback) {
-        this.push(JSON.stringify(chunk));
-        callback();
-      })).pipe(res);
+      .pipe(
+        new Transform({
+          objectMode: true,
+          transform(chunk, encoding, callback){
+              this.push(JSON.stringify(chunk));
+              callback();
+          }
+        })
+      ).pipe(res);
     
-    docStream.on('error', function(e){ 
-      res.status(e.response.status).send(e.response.data)
+    docStream.on('error', function(err) { 
+      res.status(err.response.status).send(err.response.data)
     })
   }
 }

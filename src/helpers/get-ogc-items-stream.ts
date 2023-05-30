@@ -1,6 +1,9 @@
 import { PagingStream } from '../paging-stream';
 import { getPagingStream } from './get-paging-stream';
 import * as _ from 'lodash';
+
+const MAX_LIMIT = 100; // maximum limit supported by OGC Hub Search API
+
 export const getOgcItemsStream = 
   async (siteUrl: string, collectionKey: string, requestQuery: Record<string, any>): Promise<PagingStream> => {
   const requestUrl = buildSearchRequestUrl(siteUrl, collectionKey, requestQuery);
@@ -17,8 +20,7 @@ export const getOgcItemsStream =
 
 const buildSearchRequestUrl = (siteUrl: string, collectionKey: string, requestQuery: Record<string, any>) => {
   const request = _.cloneDeep(requestQuery);
-  // maximum limit supported by OGC Hub Search API is 100
-  request.limit = Math.min(requestQuery.limit || 100, 100);
+  request.limit = Math.min(requestQuery.limit || MAX_LIMIT, MAX_LIMIT);
   request.startindex = requestQuery.startindex || 1;
   const searchParams = new URLSearchParams(request).toString();
   return `${siteUrl}/api/search/v1/collections/${collectionKey}/items?${searchParams}`;
