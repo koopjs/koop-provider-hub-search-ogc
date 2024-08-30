@@ -4,7 +4,7 @@ import { version } from '../package.json';
 export = {
     name: 'koop-provider-hub-search-ogc',
     type: 'provider',
-    disableIdParam: false,
+    disableIdParam: true,
     Model: HubApiModel,
     version
 };

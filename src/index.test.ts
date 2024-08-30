@@ -6,7 +6,7 @@ describe('provider registration', () => {
     expect(providerConfig).toBeDefined();
     expect(providerConfig.name).toBe('koop-provider-hub-search-ogc');
     expect(providerConfig.type).toBe('provider');
-    expect(providerConfig.disableIdParam).toBe(false);
+    expect(providerConfig.disableIdParam).toBe(true);
     expect(HubApiModel).toEqual(HubApiModel);
   });
 });

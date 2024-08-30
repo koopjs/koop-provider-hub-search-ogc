@@ -11,7 +11,19 @@ class Output {
   ];
 
   async serve (req, res) {
-    req.res.locals.siteIdentifier = 'https://datahub-dc-dcgis.hub.arcgis.com';
+    req.res.locals.siteIdentifier = 'https://santest-dev-pre-hub.hubdev.arcgis.com';
+    req.res.locals.arcgisPortal = 'https://devext.arcgis.com';
+
+    req.res.locals.ogcSearchRequestOpts = {
+      queryParams: {
+        // id: req.query.id,
+        limit: undefined,
+        flatten: true,
+        fields: 'name,description,tags,created,modified,source,owner,orgContactEmail,extent,url,metadata,layer,server',
+        // limit: 5000
+      },
+      collectionKey: 'all'
+    }
     
     const docStream = await this.model.pullStream(req);
 
