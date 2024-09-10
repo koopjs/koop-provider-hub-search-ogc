@@ -1,10 +1,7 @@
 import { getUserUrl, IItem } from '@esri/arcgis-rest-portal';
 import {
     DatasetResource,
-    datasetToItem,
     datasetToContent,
-    getProxyUrl,
-    IHubRequestOptions,
     parseDatasetId
 } from '@esri/hub-common';
 import { isPage } from '@esri/hub-sites';
@@ -27,6 +24,8 @@ type FileType = 'shapefile' | 'csv' | 'geojson' | 'kml';
 export function enrichDataset(dataset: Record<string, any>, siteDetails: Record<string, string>): Record<string, any> {
     // Download and Hub Links must be generated from Content
     const datasetAttr = _.get(dataset, 'properties', {});
+
+    // TODO: consider using `IHubEditableContent` from composeHubContent
     const content = datasetToContent({
         id: dataset.id,
         attributes: datasetAttr
@@ -44,17 +43,11 @@ export function enrichDataset(dataset: Record<string, any>, siteDetails: Record<
         orgTitle,
         provenance: _.get(datasetAttr, 'metadata.metadata.dataIdInfo.idCredit', ''),
         hubLandingPage: concatUrlAndPath(siteUrl, relative.slice(1)),
-        downloadLink: concatUrlAndPath(siteUrl, `datasets/${identifier}`),
+        downloadLink: concatUrlAndPath(siteUrl, `datasets/${identifier}`), // TODO: change downloadLink to something else as it is misleading
         agoLandingPage: getAgoLandingPageUrl(dataset.id, portalUrl),
         isLayer: isLayer(datasetAttr),
         license: getDatasetLicense(datasetAttr)
     };
-
-    const downloadLinkFor: (type: string) => string = getDownloadLinkFn(additionalFields.downloadLink, datasetAttr);
-
-    if (isProxiedCSV(datasetAttr)) {
-        additionalFields.accessUrlCSV = downloadLinkFor('csv');
-    }
 
     if (isLayer(datasetAttr)) {
         additionalFields.durableUrlGeoJSON = generateDurableDownloadUrl(dataset.id, siteUrl, 'geojson');
@@ -134,16 +127,6 @@ function getDatasetLicense(dataset: HubDataset): string {
     return license;
 }
 
-function isProxiedCSV(hubDataset: HubDataset): boolean {
-    const item = datasetToItem({
-        id: hubDataset.id,
-        attributes: hubDataset
-    } as DatasetResource);
-    const requestOptions: IHubRequestOptions = { isPortal: false };
-
-    return !!getProxyUrl(item, requestOptions);
-}
-
 function getAgoLandingPageUrl(datasetId: string, portalUrl: string) {
     const { itemId, layerId } = parseDatasetId(datasetId);
     let agoLandingPage = `${portalUrl}/home/item.html?id=${itemId}`;
@@ -151,24 +134,6 @@ function getAgoLandingPageUrl(datasetId: string, portalUrl: string) {
         agoLandingPage += `&sublayer=${layerId}`;
     }
     return agoLandingPage;
-}
-
-// HUBJS CANDIDATE
-function getDownloadLinkFn(downloadLink: string, hubDataset: any) {
-    const spatialReference = _.get(hubDataset, 'server.spatialReference');
-
-    let queryStr = '?where=1=1'; // default query param to get up to date file
-
-    if (spatialReference) {
-        const { latestWkid, wkid } = spatialReference;
-
-        if (wkid) {
-            const outSR = JSON.stringify({ latestWkid, wkid });
-            queryStr = `${queryStr}&outSR=${encodeURIComponent(outSR)}`;
-        }
-    }
-
-    return (ext: string) => `${downloadLink}.${ext}${queryStr}`;
 }
 
 function ogcUrl(datasetUrl: string, type: 'WMS' | 'WFS'): string {

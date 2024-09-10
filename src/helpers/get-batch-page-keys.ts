@@ -3,8 +3,8 @@ export const getBatchPageKeys = (numBatches: number, pagesPerBatch: number, page
   for (let i = 0; i < numBatches; i++) {
     pageKeys.push({
       limit: getPageSize(pageSize, i, numBatches, limit, pagesPerBatch),
-        // Start at 1
-        startindex: 1 + (i * pagesPerBatch * pageSize),
+      // Start at 1
+      startindex: 1 + (i * pagesPerBatch * pageSize),
     });
   }
   return pageKeys;
@@ -17,9 +17,9 @@ export const getBatchPageKeys = (numBatches: number, pagesPerBatch: number, page
   of default page size provided. 
 */
 const getPageSize = (pageSize: number, currentBatch: number, totalBatch: number, limit: number, pagesPerBatch: number) => {
-  return isNaN(limit) 
-    ? pageSize 
-    : (currentBatch === (totalBatch - 1)) 
-      ? Math.abs((currentBatch * pagesPerBatch * pageSize) - limit) 
+  return isNaN(limit)
+    ? pageSize
+    : (currentBatch === (totalBatch - 1))
+      ? Math.abs((currentBatch * pagesPerBatch * pageSize) - limit)
       : pageSize;
 };

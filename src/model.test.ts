@@ -25,18 +25,18 @@ describe('HubApiModel', () => {
   beforeEach(() => {
     mockGetBatchStreams.mockReset();
     mockLookupDomain.mockResolvedValue({
-      "id": "374730",
-      "hostname": "download-test-qa-pre-a-hub.hubqa.arcgis.com",
-      "siteId": "6250d80d445740cc83e03a15d72229b5",
-      "clientKey": "lynU5vV3hIra11jA",
-      "orgKey": "qa-pre-a-hub",
-      "siteTitle": "download Sidebar",
-      "orgId": "Xj56SBi2udA78cC9",
-      "orgTitle": "QA Premium Alpha Hub",
-      "createdAt": "2021-02-12T00:23:44.798Z",
-      "updatedAt": "2021-02-26T16:16:13.300Z",
-      "sslOnly": true,
-      "permanentRedirect": false,
+      'id': '123',
+      'hostname': 'test-hub.hub.arcgis.com',
+      'siteId': 'side-id',
+      'clientKey': 'client-key',
+      'orgKey': 'org-key',
+      'siteTitle': 'Hub site title',
+      'orgId': 'org-id',
+      'orgTitle': 'Test Org',
+      'createdAt': '2021-02-12T00:23:44.798Z',
+      'updatedAt': '2021-02-26T16:16:13.300Z',
+      'sslOnly': true,
+      'permanentRedirect': false,
     });
   });
 
@@ -117,7 +117,7 @@ describe('HubApiModel', () => {
           q: 'test'
         },
       },
-      { orgBaseUrl: 'https://qa-pre-a-hub.mapsdev.arcgis.com', orgTitle: 'QA Premium Alpha Hub', portalUrl: 'https://devext.arcgis.com', siteUrl: 'https://my-site.hub.arcgis.com' }
+      { orgBaseUrl: 'https://org-key.mapsdev.arcgis.com', orgTitle: 'Test Org', portalUrl: 'https://devext.arcgis.com', siteUrl: 'https://my-site.hub.arcgis.com' }
     );
     expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
     expect(actualResponses[0]).toEqual(mockedResponses[0][0][0]);
@@ -218,7 +218,7 @@ describe('HubApiModel', () => {
           sortBy: '+properties.modified'
         },
       },
-      { orgBaseUrl: 'https://qa-pre-a-hub.mapsdev.arcgis.com', orgTitle: 'QA Premium Alpha Hub', portalUrl: 'https://devext.arcgis.com', siteUrl: 'https://my-site.hub.arcgis.com' }
+      { orgBaseUrl: 'https://org-key.mapsdev.arcgis.com', orgTitle: 'Test Org', portalUrl: 'https://devext.arcgis.com', siteUrl: 'https://my-site.hub.arcgis.com' }
     );
 
     expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
@@ -323,8 +323,8 @@ describe('HubApiModel', () => {
           },
         },
         {
-          orgBaseUrl: 'https://qa-pre-a-hub.mapsdev.arcgis.com',
-          orgTitle: 'QA Premium Alpha Hub',
+          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+          orgTitle: 'Test Org',
           portalUrl: 'https://devext.arcgis.com',
           siteUrl: 'https://my-site.hub.arcgis.com'
         }
@@ -402,8 +402,8 @@ describe('HubApiModel', () => {
           },
         },
         {
-          orgBaseUrl: 'https://qa-pre-a-hub.mapsdev.arcgis.com',
-          orgTitle: 'QA Premium Alpha Hub',
+          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+          orgTitle: 'Test Org',
           portalUrl: 'https://devext.arcgis.com',
           siteUrl: 'https://my-site.hub.arcgis.com'
         }
@@ -463,8 +463,8 @@ describe('HubApiModel', () => {
           }
         },
         {
-          orgBaseUrl: 'https://qa-pre-a-hub.mapsdev.arcgis.com',
-          orgTitle: 'QA Premium Alpha Hub',
+          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+          orgTitle: 'Test Org',
           portalUrl: 'https://devext.arcgis.com',
           siteUrl: 'https://my-site.hub.arcgis.com'
         }
@@ -519,8 +519,8 @@ describe('HubApiModel', () => {
           },
         },
         {
-          orgBaseUrl: 'https://qa-pre-a-hub.mapsdev.arcgis.com',
-          orgTitle: 'QA Premium Alpha Hub',
+          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com"',
+          orgTitle: 'Test Org',
           portalUrl: 'https://devext.arcgis.com',
           siteUrl: 'https://my-site.hub.arcgis.com'
         });
@@ -572,8 +572,8 @@ describe('HubApiModel', () => {
         },
       },
       {
-        orgBaseUrl: 'https://qa-pre-a-hub.mapsqa.arcgis.com',
-        orgTitle: 'QA Premium Alpha Hub',
+        orgBaseUrl: 'https://org-key.mapsqa.arcgis.com',
+        orgTitle: 'Test Org',
         portalUrl: 'https://qaext.arcgis.com',
         siteUrl: 'https://my-site.hub.arcgis.com'
       });
