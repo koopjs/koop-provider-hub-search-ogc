@@ -1,89 +1,131 @@
 import { PagingStream } from '../paging-stream';
 import * as GetPagingStream from './get-paging-stream';
 import { getOgcItemsStream } from './get-ogc-items-stream';
-import QueryString from 'qs';
+import axios from 'axios';
+
+jest.mock('axios');
 
 describe('getOgcItemsStream function', () => {
   const getPagingStreamSpy = jest.spyOn(GetPagingStream, 'getPagingStream');
-
+  const hubsite = {
+    siteUrl: 'arcgis.com',
+    portalUrl: 'portal.arcgis.com',
+    orgBaseUrl: 'qa.arcgis.com',
+    orgTitle: "QA Premium Alpha Hub"
+  }
   beforeEach(() => {
     getPagingStreamSpy.mockReset();
   });
 
-  it('should create paging stream with default limit and start index', async () => {
+  it('can return several streams based on limit', async () => {
     // Setup
     const siteUrl = 'https://my-site.hub.arcgis.com'
-    const collectionKey = 'dataset'
-    const requestQuery = {};
+    const ogcSearchRequestOpts = {
+      queryParams: {
+        limit: 150
+      },
+      collectionKey: 'all'
+    };
+    (axios.get as jest.Mock).mockResolvedValue({
+      data: {
+        numberMatched: 324,
+      }
+    });
+
     // Test
-    try {
-      const stream: PagingStream = await getOgcItemsStream(siteUrl, collectionKey, requestQuery);
-      expect(stream).toBeDefined();
-      expect(getPagingStreamSpy).toHaveBeenCalledTimes(1);
-      expect(getPagingStreamSpy).toHaveBeenCalledWith(
-        'https://my-site.hub.arcgis.com/api/search/v1/collections/dataset/items?limit=100&startindex=1',
-        undefined
-      );
-    } catch (err) {
-      fail(err);
-    }
+    const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite);
+    expect(streams).toHaveLength(2);
+    expect(getPagingStreamSpy).toHaveBeenCalledTimes(2);
+    expect(getPagingStreamSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=1',
+      hubsite,
+      1
+    );
+
+    expect(getPagingStreamSpy).toHaveBeenNthCalledWith(
+      2,
+      'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=50&startindex=101',
+      hubsite,
+      1
+    );
+
+    expect(axios.get).toBeCalledTimes(1);
+    expect(axios.get).toHaveBeenNthCalledWith(1, 'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=0&startindex=1');
   });
 
-  it('should create paging stream with limit from query', async () => {
+
+  it('can return several streams', async () => {
     // Setup
     const siteUrl = 'https://my-site.hub.arcgis.com'
-    const collectionKey = 'dataset'
-    const requestQuery = { limit: 50 } as unknown as QueryString.ParsedQs;
+    const ogcSearchRequestOpts = {
+      queryParams: {},
+      collectionKey: 'all'
+    };
+    (axios.get as jest.Mock).mockResolvedValue({
+      data: {
+        numberMatched: 324,
+      }
+    });
+
     // Test
-    try {
-      const stream: PagingStream = await getOgcItemsStream(siteUrl, collectionKey, requestQuery);
-      expect(stream).toBeDefined();
-      expect(getPagingStreamSpy).toHaveBeenCalledTimes(1);
-      expect(getPagingStreamSpy).toHaveBeenCalledWith(
-        'https://my-site.hub.arcgis.com/api/search/v1/collections/dataset/items?limit=50&startindex=1', 
-        1
-      );
-    } catch (err) {
-      fail(err);
-    }
+    const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite);
+    expect(streams).toHaveLength(4);
+
+    expect(streams).toBeDefined();
+    expect(getPagingStreamSpy).toHaveBeenCalledTimes(4);
+    expect(getPagingStreamSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=1',
+      hubsite,
+      1
+    );
+
+    expect(getPagingStreamSpy).toHaveBeenNthCalledWith(
+      2,
+      'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=101',
+      hubsite,
+      1
+    );
+
+    expect(getPagingStreamSpy).toHaveBeenNthCalledWith(
+      3,
+      'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=201',
+      hubsite,
+      1
+    );
+
+    expect(getPagingStreamSpy).toHaveBeenNthCalledWith(
+      4,
+      'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=301',
+      hubsite,
+      1
+    );
+
+    expect(axios.get).toBeCalledTimes(1);
+    expect(axios.get).toHaveBeenNthCalledWith(1, 'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=0&startindex=1');
   });
 
-  it('should create paging stream with default limit and page limit if request query limit is greater than 100', async () => {
+  it('can handle not returning any streams', async () => {
     // Setup
     const siteUrl = 'https://my-site.hub.arcgis.com'
-    const collectionKey = 'dataset'
-    const requestQuery = { limit: 150 } as unknown as QueryString.ParsedQs;
-    // Test
-    try {
-      const stream: PagingStream = await getOgcItemsStream(siteUrl, collectionKey, requestQuery);
-      expect(stream).toBeDefined();
-      expect(getPagingStreamSpy).toHaveBeenCalledTimes(1);
-      expect(getPagingStreamSpy).toHaveBeenCalledWith(
-        'https://my-site.hub.arcgis.com/api/search/v1/collections/dataset/items?limit=100&startindex=1', 
-        1
-      );
-    } catch (err) {
-      fail(err);
-    }
-  });
+    const ogcSearchRequestOpts = {
+      queryParams: {},
+      collectionKey: 'all'
+    };
+    (axios.get as jest.Mock).mockResolvedValue({
+      data: {
+        numberMatched: 0,
+      }
+    });
 
-  it('should create paging stream with startindex from query', async () => {
-    // Setup
-    const siteUrl = 'https://my-site.hub.arcgis.com'
-    const collectionKey = 'dataset'
-    const requestQuery = { startindex: 600 } as unknown as QueryString.ParsedQs;
     // Test
-    try {
-      const stream: PagingStream = await getOgcItemsStream(siteUrl, collectionKey, requestQuery);
-      expect(stream).toBeDefined();
-      expect(getPagingStreamSpy).toHaveBeenCalledTimes(1);
-      expect(getPagingStreamSpy).toHaveBeenCalledWith(
-        'https://my-site.hub.arcgis.com/api/search/v1/collections/dataset/items?startindex=600&limit=100', 
-        undefined
-      );
-    } catch (err) {
-      fail(err);
-    }
+    const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite);
+    expect(streams).toHaveLength(0);
+    expect(getPagingStreamSpy).toHaveBeenCalledTimes(0);
+
+    expect(axios.get).toBeCalledTimes(1);
+    expect(axios.get).toHaveBeenNthCalledWith(1, 'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=0&startindex=1');
   });
 });
 
