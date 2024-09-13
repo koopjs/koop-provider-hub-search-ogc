@@ -1,6 +1,6 @@
 {
   "name": "@koopjs/koop-provider-hub-search-ogc",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "A Koop provider plugin to use the Hub Search OGC API as a data source",
   "main": "src/index.js",
   "engines": {

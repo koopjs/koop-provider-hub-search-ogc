@@ -519,7 +519,7 @@ describe('HubApiModel', () => {
           },
         },
         {
-          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com"',
+          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
           orgTitle: 'Test Org',
           portalUrl: 'https://devext.arcgis.com',
           siteUrl: 'https://my-site.hub.arcgis.com'
