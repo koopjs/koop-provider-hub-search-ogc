@@ -75,6 +75,7 @@ describe('enrichDataset function', () => {
             agoLandingPage: 'portal.arcgis.com/home/item.html?id=123a&sublayer=0',
             isLayer: true,
             license: '',
+            links: undefined
         }
 
         const geojson = {
@@ -500,5 +501,53 @@ describe('enrichDataset function', () => {
             { siteUrl: 'arcgis.com', portalUrl: 'portal.com', orgBaseUrl: 'qa.arcgis.com', orgTitle: "QA Premium Alpha Hub" });
         expect(properties).toBeDefined()
         expect(properties.issuedDateTime).toBeUndefined()
+    });
+
+    it('should set issuedDateTime as undefined if hub dataset created field contains invalid value', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            size: 1,
+            type: 'CSV',
+            created: 'invalid-string'
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset,
+            links: [
+                {
+                    rel: 'external',
+                    type: 'csv',
+                    title: 'csv',
+                    href: 'https://download-url/csv'
+                },
+                {
+                    rel: 'external',
+                    type: 'geojson',
+                    title: 'geojson',
+                    href: 'https://download-url/geojson'
+                }
+            ]
+        }
+
+        const { properties } = enrichDataset(geojson,
+            { siteUrl: 'arcgis.com', portalUrl: 'portal.com', orgBaseUrl: 'qa.arcgis.com', orgTitle: "QA Premium Alpha Hub" });
+        expect(properties).toBeDefined()
+        expect(properties.links).toBeDefined()
+        expect(properties.links).toStrictEqual([
+            {
+                rel: 'external',
+                type: 'csv',
+                title: 'csv',
+                href: 'https://download-url/csv'
+            },
+            {
+                rel: 'external',
+                type: 'geojson',
+                title: 'geojson',
+                href: 'https://download-url/geojson'
+            }
+        ])
     });
 }) 
