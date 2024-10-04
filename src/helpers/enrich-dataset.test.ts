@@ -503,7 +503,7 @@ describe('enrichDataset function', () => {
         expect(properties.issuedDateTime).toBeUndefined()
     });
 
-    it('should set issuedDateTime as undefined if hub dataset created field contains invalid value', () => {
+    it('should add links to geojson properties', () => {
         const hubDataset = {
             id: 'foo',
             access: 'public',
