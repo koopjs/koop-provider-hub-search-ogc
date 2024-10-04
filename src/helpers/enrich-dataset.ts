@@ -71,6 +71,9 @@ export function enrichDataset(dataset: Record<string, any>, siteDetails: Record<
         ...additionalFields
     };
 
+    // template require links
+    dataset.properties.links = dataset.links;
+
     return dataset;
 };
 
