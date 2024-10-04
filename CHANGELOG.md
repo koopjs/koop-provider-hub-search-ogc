@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.0.1
+Added
+- OGC links under geojson properties
+
 ## 1.0.0
 Added
 - OGC Search parameters
