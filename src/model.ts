@@ -108,7 +108,7 @@ export class HubApiModel {
         });
       });
     }
-    destination.emit('end');
+    destination.end(() => { });
   }
 
   private async getDomainRecord(portalUrl: string, siteUrl: string): Promise<IDomainEntry> {
