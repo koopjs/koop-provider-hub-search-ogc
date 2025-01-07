@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.0.2
+Fixed
+- Incorrect number of results with ordered Node.js streams
+
 ## 1.0.1
 Added
 - OGC links under geojson properties
