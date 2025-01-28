@@ -1,0 +1,35 @@
+name: main
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: volta-cli/action@v4
+    - run: npm ci --legacy-peer-deps
+    - run: npm run lint
+    - run: npm test
+    - run: npm run build
+      env:
+        CI: true
+
+  automerge-dependabot-pr:
+    if: ${{ github.event_name == 'pull_request' }}
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: write
+    steps:
+      - uses: fastify/github-action-merge-dependabot@v3
+        with:
+          target: minor
