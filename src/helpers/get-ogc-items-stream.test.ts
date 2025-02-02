@@ -54,7 +54,6 @@ describe('getOgcItemsStream function', () => {
     expect(axios.get).toHaveBeenNthCalledWith(1, 'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=0&startindex=1');
   });
 
-
   it('can return several streams', async () => {
     // Setup
     const siteUrl = 'https://my-site.hub.arcgis.com'
@@ -126,6 +125,44 @@ describe('getOgcItemsStream function', () => {
 
     expect(axios.get).toBeCalledTimes(1);
     expect(axios.get).toHaveBeenNthCalledWith(1, 'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=0&startindex=1');
+  });
+
+  it('should target the given Hub API URL if specified', async () => {
+    // Setup
+    const siteUrl = 'https://my-site.hub.arcgis.com'
+    const ogcSearchRequestOpts = {
+      queryParams: {
+        limit: 150
+      },
+      collectionKey: 'all',
+      hubApiUrl: 'https://hubogctest.arcgis.com'
+    };
+    (axios.get as jest.Mock).mockResolvedValue({
+      data: {
+        numberMatched: 324,
+      }
+    });
+
+    // Test
+    const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite);
+    expect(streams).toHaveLength(2);
+    expect(getPagingStreamSpy).toHaveBeenCalledTimes(2);
+    expect(getPagingStreamSpy).toHaveBeenNthCalledWith(
+      1,
+      'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=1&target=hubogctest.arcgis.com',
+      hubsite,
+      1
+    );
+
+    expect(getPagingStreamSpy).toHaveBeenNthCalledWith(
+      2,
+      'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=50&startindex=101&target=hubogctest.arcgis.com',
+      hubsite,
+      1
+    );
+
+    expect(axios.get).toBeCalledTimes(1);
+    expect(axios.get).toHaveBeenNthCalledWith(1, 'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=0&startindex=1&target=hubogctest.arcgis.com');
   });
 });
 
