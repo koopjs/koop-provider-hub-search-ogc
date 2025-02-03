@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.1.0
+Added
+- `hubApiUrl` option in the OGC search options to customize the base URL for Hub APIs
+
 ## 1.0.2
 Fixed
 - Incorrect number of results with ordered Node.js streams
