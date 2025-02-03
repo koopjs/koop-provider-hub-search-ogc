@@ -12,7 +12,14 @@ import { HubSite } from './helpers/enrich-dataset';
 
 export type SearchRequestOpts = {
   queryParams: Record<string, any>,
-  collectionKey: string
+  collectionKey: string,
+  hubApiUrl?: string,
+};
+
+type GetDomainRecordParams = {
+  siteUrl: string,
+  portalUrl: string,
+  hubApiUrl?: string,
 };
 
 export class HubApiModel {
@@ -22,7 +29,7 @@ export class HubApiModel {
       res: {
         locals: {
           siteIdentifier,
-          ogcSearchRequestOpts
+          ogcSearchRequestOpts,
         }
       },
     } = request;
@@ -34,7 +41,11 @@ export class HubApiModel {
     }
 
     try {
-      const domainRecord: IDomainEntry = await this.getDomainRecord(arcgisPortal, siteIdentifier.replace(/^https?:\/\//, ''));
+      const domainRecord: IDomainEntry = await this.getDomainRecord({
+        portalUrl: arcgisPortal,
+        siteUrl: siteIdentifier.replace(/^https?:\/\//, ''),
+        hubApiUrl: ogcSearchRequestOpts?.hubApiUrl,
+      });
 
       const siteDetails: HubSite = {
         siteUrl: siteIdentifier,
@@ -61,7 +72,6 @@ export class HubApiModel {
         _.get(err, 'response.data.statusCode', 500)
       );
     }
-    
   }
 
   private combineStreamsNotInSequence(streams: PagingStream[], pass: PassThrough): PassThrough {
@@ -111,16 +121,16 @@ export class HubApiModel {
     destination.end(() => { });
   }
 
-  private async getDomainRecord(portalUrl: string, siteUrl: string): Promise<IDomainEntry> {
+  private async getDomainRecord(params: GetDomainRecordParams): Promise<IDomainEntry> {
     const requestOptions = {
       isPortal: false,
-      hubApiUrl: getHubApiUrl(portalUrl),
-      portal: getPortalApiUrl(portalUrl),
+      hubApiUrl: params.hubApiUrl ?? getHubApiUrl(params.portalUrl),
+      portal: getPortalApiUrl(params.portalUrl),
       authentication: null,
     };
 
     const domainRecord = (await lookupDomain(
-      siteUrl,
+      params.siteUrl,
       requestOptions,
     )) as IDomainEntry;
 
