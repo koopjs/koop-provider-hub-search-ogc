@@ -8,7 +8,7 @@ import { SearchRequestOpts } from '../model';
 
 const MAX_LIMIT = 100; // maximum limit supported by OGC Hub Search API
 
-export const getOgcItemsStream =
+export const getOgcItemsStream = 
   async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, siteDetails): Promise<PagingStream[]> => {
 
   const totalCount = await getTotalCount(siteUrl, ogcSearchRequestOpts);
@@ -29,7 +29,7 @@ export const getOgcItemsStream =
       req,
       siteDetails,
       getPagesPerBatch(_.get(ogcSearchRequestOpts, 'queryParams.limit'), index, requests, pagesPerBatch)
-    );
+    ); 
   });
 };
 
@@ -37,11 +37,6 @@ const buildSearchRequestUrl = (siteUrl: string, ogcSearchRequestOpts: SearchRequ
   const searchRequest = _.cloneDeep(ogcSearchRequestOpts.queryParams);
   searchRequest.limit = Math.min(searchRequest.limit, MAX_LIMIT);
   searchRequest.startindex = searchRequest.startindex || 1;
-
-  if (ogcSearchRequestOpts.hubApiUrl) {
-    searchRequest.target = getDomainFromUrl(ogcSearchRequestOpts.hubApiUrl);
-  }
-
   const searchParams = new URLSearchParams(searchRequest).toString();
   return `${siteUrl}/api/search/v1/collections/${ogcSearchRequestOpts.collectionKey}/items?${searchParams}`;
 };
@@ -50,35 +45,17 @@ const getTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchReques
   const searchRequest = _.cloneDeep(ogcSearchRequestOpts.queryParams);
   searchRequest.limit = 0;
   searchRequest.startindex = 1;
-
-  if (ogcSearchRequestOpts.hubApiUrl) {
-    searchRequest.target = getDomainFromUrl(ogcSearchRequestOpts.hubApiUrl);
-  }
-
   const searchParams = new URLSearchParams(searchRequest).toString();
   const fetchUrl = `${siteUrl}/api/search/v1/collections/${ogcSearchRequestOpts.collectionKey}/items?${searchParams}`;
   const res = await axios.get(fetchUrl);
   return _.get(res, 'data.numberMatched');
 };
 
-/*
-  If limit is provided, pagesPerBatch is set to 1 and disregard the previously
-  calculated pagesPerBatch for the last content search request. It is required
+/*  
+  If limit is provided, pagesPerBatch is set to 1 and disregard the previously 
+  calculated pagesPerBatch for the last content search request. It is required 
   to do so as default paging strategy is not implemented for the last batch.
 */
 const getPagesPerBatch = (limit: number, requestIndex: number, requests: any, pagesPerBatch: number) => {
   return limit ? (requestIndex + 1 === requests.length ? 1 : pagesPerBatch) : pagesPerBatch;
 };
-
-function getDomainFromUrl(url: string): string {
-  try {
-    // Check if the URL is a domain-only string
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = `http://${url}`;
-    }
-    const parsedUrl = new URL(url);
-    return parsedUrl.hostname;
-  } catch (error) {
-    throw new Error(`Invalid Hub API URL: ${url}`);
-  }
-}

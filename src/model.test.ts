@@ -24,8 +24,6 @@ describe('HubApiModel', () => {
 
   beforeEach(() => {
     mockGetBatchStreams.mockReset();
-
-    mockLookupDomain.mockReset();
     mockLookupDomain.mockResolvedValue({
       'id': '123',
       'hostname': 'test-hub.hub.arcgis.com',
@@ -597,7 +595,7 @@ describe('HubApiModel', () => {
       },
       app: { locals: { arcgisPortal: 'https://qaext.arcgis.com' } },
     } as unknown as Request;
-
+    
     // Mock
     mockGetBatchStreams.mockImplementationOnce(() => {
       return Promise.resolve([]);
@@ -638,7 +636,7 @@ describe('HubApiModel', () => {
       },
       app: { locals: { arcgisPortal: 'https://qaext.arcgis.com' } },
     } as unknown as Request;
-
+    
     // Mock
     mockGetBatchStreams.mockRejectedValue({
       response: {
@@ -669,6 +667,7 @@ describe('HubApiModel', () => {
     }
   });
 
+
   it('stops non-sequential stream and throws error if underlying paging stream throws error', async () => {
     // Setup
     const model = new HubApiModel();
@@ -679,7 +678,7 @@ describe('HubApiModel', () => {
           siteIdentifier: 'https://my-site.hub.arcgis.com',
           ogcSearchRequestOpts: {
             queryParams: {
-              q: 'test',
+              q: 'test',            
             }
           }
         }
@@ -833,7 +832,7 @@ describe('HubApiModel', () => {
       const pipe = promisify(pipeline);
 
       await pipe(stream, pass);
-
+      
       fail('Should never reach here')
     } catch (err) {
       expect(err.message).toEqual('Error fetching data!');
@@ -926,94 +925,11 @@ describe('HubApiModel', () => {
       const pipe = promisify(pipeline);
 
       await pipe(stream, pass);
-
+      
       fail('Should never reach here')
     } catch (err) {
       expect(err.message).toEqual('Error fetching data!');
       expect(mockGetBatchStreams).toHaveBeenCalledTimes(1);
     }
   });
-
-  it('should guess the Hub API URL from the portal URL', async () => {
-    // Setup
-    const model = new HubApiModel();
-
-    const req = {
-      res: {
-        locals: {
-          siteIdentifier: 'https://my-site.hub.arcgis.com',
-          ogcSearchRequestOpts: {
-            queryParams: {
-              q: 'test'
-            }
-          }
-        }
-      },
-      app: { locals: { arcgisPortal: 'https://devext.arcgis.com' } },
-    } as unknown as Request;
-
-    mockGetBatchStreams.mockImplementationOnce(() => {
-      return Promise.resolve([]);
-    });
-
-    try {
-      const actualResponses = [];
-      const stream = await model.getStream(req);
-      const pass = new PassThrough({ objectMode: true });
-      pass.on('data', data => {
-        actualResponses.push(data);
-      });
-
-      const pipe = promisify(pipeline);
-
-      await pipe(stream, pass);
-
-      expect(mockLookupDomain.mock.calls).toHaveLength(1);
-      expect(mockLookupDomain.mock.calls[0][1].hubApiUrl).toEqual('https://hubdev.arcgis.com');
-    } catch (err) {
-      fail(err);
-    }
-  })
-
-  it('should use a custom Hub API URL if provided', async () => {
-    // Setup
-    const model = new HubApiModel();
-
-    const req = {
-      res: {
-        locals: {
-          siteIdentifier: 'https://my-site.hub.arcgis.com',
-          ogcSearchRequestOpts: {
-            queryParams: {
-              q: 'test'
-            },
-            hubApiUrl: 'https://hubogctest.arcgis.com'
-          }
-        }
-      },
-      app: { locals: { arcgisPortal: 'https://devext.arcgis.com' } },
-    } as unknown as Request;
-
-    mockGetBatchStreams.mockImplementationOnce(() => {
-      return Promise.resolve([]);
-    });
-
-    try {
-      const actualResponses = [];
-      const stream = await model.getStream(req);
-      const pass = new PassThrough({ objectMode: true });
-      pass.on('data', data => {
-        actualResponses.push(data);
-      });
-
-      const pipe = promisify(pipeline);
-
-      await pipe(stream, pass);
-
-      expect(mockLookupDomain.mock.calls).toHaveLength(1);
-      expect(mockLookupDomain.mock.calls[0][1].hubApiUrl).toEqual('https://hubogctest.arcgis.com');
-    } catch (err) {
-      fail(err);
-    }
-  })
 });
