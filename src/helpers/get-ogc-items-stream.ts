@@ -37,11 +37,6 @@ const buildSearchRequestUrl = (siteUrl: string, ogcSearchRequestOpts: SearchRequ
   const searchRequest = _.cloneDeep(ogcSearchRequestOpts.queryParams);
   searchRequest.limit = Math.min(searchRequest.limit, MAX_LIMIT);
   searchRequest.startindex = searchRequest.startindex || 1;
-
-  if (ogcSearchRequestOpts.hubApiUrl) {
-    searchRequest.target = getDomainFromUrl(ogcSearchRequestOpts.hubApiUrl);
-  }
-
   const searchParams = new URLSearchParams(searchRequest).toString();
   return `${siteUrl}/api/search/v1/collections/${ogcSearchRequestOpts.collectionKey}/items?${searchParams}`;
 };
@@ -50,11 +45,6 @@ const getTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchReques
   const searchRequest = _.cloneDeep(ogcSearchRequestOpts.queryParams);
   searchRequest.limit = 0;
   searchRequest.startindex = 1;
-
-  if (ogcSearchRequestOpts.hubApiUrl) {
-    searchRequest.target = getDomainFromUrl(ogcSearchRequestOpts.hubApiUrl);
-  }
-
   const searchParams = new URLSearchParams(searchRequest).toString();
   const fetchUrl = `${siteUrl}/api/search/v1/collections/${ogcSearchRequestOpts.collectionKey}/items?${searchParams}`;
   const res = await axios.get(fetchUrl);
@@ -69,16 +59,3 @@ const getTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchReques
 const getPagesPerBatch = (limit: number, requestIndex: number, requests: any, pagesPerBatch: number) => {
   return limit ? (requestIndex + 1 === requests.length ? 1 : pagesPerBatch) : pagesPerBatch;
 };
-
-function getDomainFromUrl(url: string): string {
-  try {
-    // Check if the URL is a domain-only string
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = `http://${url}`;
-    }
-    const parsedUrl = new URL(url);
-    return parsedUrl.hostname;
-  } catch (error) {
-    throw new Error(`Invalid Hub API URL: ${url}`);
-  }
-}
