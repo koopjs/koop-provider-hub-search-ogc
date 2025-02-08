@@ -8,7 +8,7 @@ import { SearchRequestOpts } from '../model';
 
 const MAX_LIMIT = 100; // maximum limit supported by OGC Hub Search API
 
-export const getOgcItemsStream =
+export const getOgcItemsStream = 
   async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, siteDetails): Promise<PagingStream[]> => {
 
   const totalCount = await getTotalCount(siteUrl, ogcSearchRequestOpts);
@@ -29,7 +29,7 @@ export const getOgcItemsStream =
       req,
       siteDetails,
       getPagesPerBatch(_.get(ogcSearchRequestOpts, 'queryParams.limit'), index, requests, pagesPerBatch)
-    );
+    ); 
   });
 };
 
@@ -51,9 +51,9 @@ const getTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchReques
   return _.get(res, 'data.numberMatched');
 };
 
-/*
-  If limit is provided, pagesPerBatch is set to 1 and disregard the previously
-  calculated pagesPerBatch for the last content search request. It is required
+/*  
+  If limit is provided, pagesPerBatch is set to 1 and disregard the previously 
+  calculated pagesPerBatch for the last content search request. It is required 
   to do so as default paging strategy is not implemented for the last batch.
 */
 const getPagesPerBatch = (limit: number, requestIndex: number, requests: any, pagesPerBatch: number) => {

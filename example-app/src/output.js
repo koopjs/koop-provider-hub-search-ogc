@@ -22,10 +22,9 @@ class Output {
         fields: 'name,description,tags,created,modified,source,owner,orgContactEmail,extent,url,metadata,layer,server',
         // limit: 5000
       },
-      collectionKey: 'all',
-      hubApiUrl: process.env.HUB_API_URL,
+      collectionKey: 'all'
     }
-
+    
     const docStream = await this.model.pullStream(req);
 
     docStream
@@ -38,8 +37,8 @@ class Output {
           }
         })
       ).pipe(res);
-
-    docStream.on('error', function(err) {
+    
+    docStream.on('error', function(err) { 
       res.status(err.response.status).send(err.response.data)
     })
   }

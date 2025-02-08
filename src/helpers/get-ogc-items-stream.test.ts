@@ -54,6 +54,7 @@ describe('getOgcItemsStream function', () => {
     expect(axios.get).toHaveBeenNthCalledWith(1, 'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=0&startindex=1');
   });
 
+
   it('can return several streams', async () => {
     // Setup
     const siteUrl = 'https://my-site.hub.arcgis.com'
