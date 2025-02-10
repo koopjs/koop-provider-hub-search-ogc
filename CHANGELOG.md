@@ -1,5 +1,13 @@
 # CHANGELOG.md
 
+## 1.2.0
+Removed
+- Revert `hubApiUrl` option introduced in the v1.1.0 release due to a bug
+
+## 1.1.0
+Added
+- `hubApiUrl` option in the OGC search options to customize the base URL for Hub APIs
+
 ## 1.0.2
 Fixed
 - Incorrect number of results with ordered Node.js streams
