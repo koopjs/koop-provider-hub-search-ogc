@@ -295,7 +295,7 @@ describe('enrichDataset function', () => {
         expect(properties.license).toBe(null);
     });
 
-    it('should generate WFS distribution url if supported and has url', () => {
+    it('should generate WFS distribution if WFSServer is supported extension and has url', () => {
         const hubDataset = {
             id: 'foo',
             access: 'public',
@@ -317,7 +317,29 @@ describe('enrichDataset function', () => {
         expect(properties.accessUrlWFS).toBe('https://sampleserver3.arcgisonline.com/arcgis/services/Earthquakes/RecentEarthquakesRendered/MapServer/WFSServer?request=GetCapabilities&service=WFS');
     });
 
-    it('should generate WMS distribution url if supported and has url', () => {
+    it('should not generate WFS distribution access url if WFSServer is supported extension but does not have an url', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            slug: 'nissan::skyline-gtr',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            license: 'none',
+            supportedExtensions: ['WFSServer'],
+            url: undefined,
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson, hubsite);
+        expect(properties.accessUrlWFS).toBeUndefined();
+    });
+
+    it('should generate WMS distribution url if WMSServer is supported extension and has url', () => {
         const hubDataset = {
             id: 'foo',
             access: 'public',
@@ -337,6 +359,28 @@ describe('enrichDataset function', () => {
 
         const { properties } = enrichDataset(geojson, hubsite);
         expect(properties.accessUrlWMS).toBe('https://sampleserver3.arcgisonline.com/arcgis/services/Earthquakes/RecentEarthquakesRendered/MapServer/WMSServer?request=GetCapabilities&service=WMS');
+    });
+
+    it('should generate WMS distribution url if WMSServer is supported extension but does not have an url', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            slug: 'nissan::skyline-gtr',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            license: 'none',
+            supportedExtensions: ['WMSServer'],
+            url: undefined,
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson, hubsite);
+        expect(properties.accessUrlWMS).toBeUndefined();
     });
 
     it('should generate download link without query string if wkid is not present in spatialReference', () => {
