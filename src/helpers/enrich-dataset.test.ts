@@ -295,7 +295,7 @@ describe('enrichDataset function', () => {
         expect(properties.license).toBe(null);
     });
 
-    it('should generate WFS distribution url if supported', () => {
+    it('should generate WFS distribution url if supported and has url', () => {
         const hubDataset = {
             id: 'foo',
             access: 'public',
@@ -317,7 +317,7 @@ describe('enrichDataset function', () => {
         expect(properties.accessUrlWFS).toBe('https://sampleserver3.arcgisonline.com/arcgis/services/Earthquakes/RecentEarthquakesRendered/MapServer/WFSServer?request=GetCapabilities&service=WFS');
     });
 
-    it('should generate WMS distribution url if supported', () => {
+    it('should generate WMS distribution url if supported and has url', () => {
         const hubDataset = {
             id: 'foo',
             access: 'public',
