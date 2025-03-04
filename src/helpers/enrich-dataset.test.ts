@@ -317,7 +317,7 @@ describe('enrichDataset function', () => {
         expect(properties.accessUrlWFS).toBe('https://sampleserver3.arcgisonline.com/arcgis/services/Earthquakes/RecentEarthquakesRendered/MapServer/WFSServer?request=GetCapabilities&service=WFS');
     });
 
-    it('should not generate WFS distribution access url if WFSServer is supported extension but does not have an url', () => {
+    it('should NOT generate WFS distribution access url if WFSServer is supported extension but does not have an url', () => {
         const hubDataset = {
             id: 'foo',
             access: 'public',
@@ -361,7 +361,7 @@ describe('enrichDataset function', () => {
         expect(properties.accessUrlWMS).toBe('https://sampleserver3.arcgisonline.com/arcgis/services/Earthquakes/RecentEarthquakesRendered/MapServer/WMSServer?request=GetCapabilities&service=WMS');
     });
 
-    it('should generate WMS distribution url if WMSServer is supported extension but does not have an url', () => {
+    it('should NOT generate WMS distribution url if WMSServer is supported extension but does not have an url', () => {
         const hubDataset = {
             id: 'foo',
             access: 'public',
