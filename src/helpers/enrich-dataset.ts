@@ -58,11 +58,11 @@ export function enrichDataset(dataset: Record<string, any>, siteDetails: Record<
         }
     }
 
-    if (datasetAttr.supportedExtensions?.includes(WFS_SERVER)) {
+    if (datasetAttr.supportedExtensions?.includes(WFS_SERVER) && !_.isNil(datasetAttr.url)) {
         additionalFields.accessUrlWFS = ogcUrl(datasetAttr.url, 'WFS');
     }
 
-    if (datasetAttr.supportedExtensions?.includes(WMS_SERVER)) {
+    if (datasetAttr.supportedExtensions?.includes(WMS_SERVER) && !_.isNil(datasetAttr.url)) {
         additionalFields.accessUrlWMS = ogcUrl(datasetAttr.url, 'WMS');
     }
 
