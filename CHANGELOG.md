@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.3.1
+Fixed
+- Distribution URLs constructions when `undefined` dataset URL 
+
 ## 1.3.0
 Added
 - `hubApiUrl` option in the OGC search options to customize the base URL for Hub APIs
