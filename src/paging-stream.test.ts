@@ -1,15 +1,40 @@
 import * as faker from 'faker';
 import { PagingStream } from '../src/paging-stream';
 
+jest.mock('./helpers/enrich-dataset', () => ({
+  ...(jest.requireActual('./helpers/enrich-dataset') as object),
+  enrichDataset: jest.fn()
+}));
+jest.mock('./helpers/cache', () => ({
+  ...(jest.requireActual('./helpers/cache') as object),
+  getCache: jest.fn(),
+  setCache: jest.fn()
+}));
+import { enrichDataset } from './helpers/enrich-dataset';
+import { setCache, getCache } from './helpers/cache';
+import Redis from 'ioredis';
+import { CacheConfig } from './model';
+import * as hash from 'object-hash';
+
 describe('paging stream', () => {
   let loadPageSpy: jest.Mock;
   let streamPageSpy: jest.Mock;
   let getNextPageParamsSpy: jest.Mock;
 
+  const mockEnrichDataset = enrichDataset as unknown as jest.MockedFunction<typeof enrichDataset>;
+  const mockSetCache = setCache as unknown as jest.MockedFunction<typeof setCache>;
+  const mockGetCache = getCache as unknown as jest.MockedFunction<typeof getCache>;
+
   beforeEach(() => {
     loadPageSpy = jest.fn();
     streamPageSpy = jest.fn();
     getNextPageParamsSpy = jest.fn();
+
+    mockEnrichDataset.mockReset();
+    mockGetCache.mockReset();
+    mockSetCache.mockReset();
+
+    mockEnrichDataset.mockImplementation((result, _siteDetails) => result);
   });
 
   it('loads and streams several pages', () => {
@@ -21,42 +46,50 @@ describe('paging stream', () => {
 
     const responses = [
       {
-        data: [
-          datasets[0],
-          datasets[1],
-          datasets[2],
-        ],
-        links: {
-          next: faker.internet.url()
+        data: {
+          features: [
+            datasets[0],
+            datasets[1],
+            datasets[2],
+          ],
+          links: {
+            next: faker.internet.url()
+          }
         }
       },
       {
-        data: [
-          datasets[3],
-          datasets[4],
-          datasets[5]
-        ],
-        links: {
-          next: faker.internet.url()
+        data: {
+          features: [
+            datasets[3],
+            datasets[4],
+            datasets[5]
+          ],
+          links: {
+            next: faker.internet.url()
+          }
         }
       },
       {
-        data: [
-          datasets[6],
-          datasets[7],
-          datasets[8]
-        ],
-        links: {
-          next: faker.internet.url()
+        data: {
+          features: [
+            datasets[6],
+            datasets[7],
+            datasets[8]
+          ],
+          links: {
+            next: faker.internet.url()
+          }
         }
       },
       {
-        data: [
-          datasets[9],
-          datasets[10],
-          datasets[11],
-        ],
-        links: { /* no next link */ }
+        data: {
+          features: [
+            datasets[9],
+            datasets[10],
+            datasets[11],
+          ],
+          links: { /* no next link */ }
+        }
       },
     ];
 
@@ -66,14 +99,15 @@ describe('paging stream', () => {
       requestCounter++;
       return res;
     });
-    streamPageSpy.mockImplementation((response, push) => response.data.forEach(push));
+    streamPageSpy.mockImplementation((response, push) => response.features.forEach(push));
     getNextPageParamsSpy.mockImplementation(response => response.links.next);
 
     const stream = new PagingStream({
       firstPageParams,
       loadPage: loadPageSpy,
       streamPage: streamPageSpy,
-      getNextPageParams: getNextPageParamsSpy
+      getNextPageParams: getNextPageParamsSpy,
+      siteDetails: {},
     });
 
     let dataCounter = 0;
@@ -86,8 +120,8 @@ describe('paging stream', () => {
       try {
         // get all the mock requests and make sure they got passed to makeRequest
         // in the right order
-        const mockRequestUrls = [firstPageParams, ...responses.map(res => res.links.next).filter(Boolean)];
-        mockRequestUrls.forEach((url, i) => expect(loadPageSpy).toHaveBeenNthCalledWith(i+1, url));
+        const mockRequestUrls = [firstPageParams, ...responses.map(res => res.data.links.next).filter(Boolean)];
+        mockRequestUrls.forEach((url, i) => expect(loadPageSpy).toHaveBeenNthCalledWith(i + 1, url));
         resolve('Test Complete');
       } catch (err) {
         reject(err);
@@ -104,42 +138,50 @@ describe('paging stream', () => {
 
     const responses = [
       {
-        data: [
-          datasets[0],
-          datasets[1],
-          datasets[2],
-        ],
-        links: {
-          next: faker.internet.url()
+        data: {
+          features: [
+            datasets[0],
+            datasets[1],
+            datasets[2],
+          ],
+          links: {
+            next: faker.internet.url()
+          }
         }
       },
       {
-        data: [
-          datasets[3],
-          datasets[4],
-          datasets[5]
-        ],
-        links: {
-          next: faker.internet.url()
+        data: {
+          features: [
+            datasets[3],
+            datasets[4],
+            datasets[5]
+          ],
+          links: {
+            next: faker.internet.url()
+          }
         }
       },
       {
-        data: [
-          datasets[6],
-          datasets[7],
-          datasets[8]
-        ],
-        links: {
-          next: faker.internet.url()
+        data: {
+          features: [
+            datasets[6],
+            datasets[7],
+            datasets[8]
+          ],
+          links: {
+            next: faker.internet.url()
+          }
         }
       },
       {
-        data: [
-          datasets[9],
-          datasets[10],
-          datasets[11],
-        ],
-        links: { /* no next link */ }
+        data: {
+          features: [
+            datasets[9],
+            datasets[10],
+            datasets[11],
+          ],
+          links: { /* no next link */ }
+        }
       },
     ];
 
@@ -149,7 +191,7 @@ describe('paging stream', () => {
       requestCounter++;
       return res;
     });
-    streamPageSpy.mockImplementation((response, push) => response.data.forEach(push));
+    streamPageSpy.mockImplementation((response, push) => response.features.forEach(push));
     getNextPageParamsSpy.mockImplementation(response => response.links.next);
 
     const stream = new PagingStream({
@@ -158,6 +200,7 @@ describe('paging stream', () => {
       streamPage: streamPageSpy,
       getNextPageParams: getNextPageParamsSpy,
       pageLimit: 2,
+      siteDetails: {},
     });
 
     let dataCounter = 0;
@@ -170,7 +213,7 @@ describe('paging stream', () => {
       try {
         // get all the mock requests and make sure they got passed to makeRequest
         // in the right order
-        const mockRequestUrls = [firstPageParams, ...responses.map(res => res.links.next).filter(Boolean)];
+        const mockRequestUrls = [firstPageParams, ...responses.map(res => res.data.links.next).filter(Boolean)];
         expect(loadPageSpy).toBeCalledTimes(2)
         expect(loadPageSpy).toHaveBeenNthCalledWith(1, mockRequestUrls[0]);
         expect(loadPageSpy).toHaveBeenNthCalledWith(2, mockRequestUrls[1]);
@@ -191,7 +234,8 @@ describe('paging stream', () => {
       firstPageParams: null,
       loadPage: loadPageSpy,
       streamPage: streamPageSpy,
-      getNextPageParams: getNextPageParamsSpy
+      getNextPageParams: getNextPageParamsSpy,
+      siteDetails: {},
     });
 
     stream.on('data', () => {
@@ -212,17 +256,18 @@ describe('paging stream', () => {
 
   it('destroys stream if error occurs streaming page', () => {
     const streamError = new Error('STREAM FAILED');
-    loadPageSpy.mockResolvedValue({data: {itemid: '123s'}, links: { next: 'https://hub.arcgis.com/next'}});
-    streamPageSpy.mockImplementation((_response, _push) =>  { throw streamError; });
+    loadPageSpy.mockResolvedValue({ data: { features: [{ itemid: '123s' }], links: { next: 'https://hub.arcgis.com/next' } } });
+    streamPageSpy.mockImplementation((_response, _push) => { throw streamError; });
     getNextPageParamsSpy.mockImplementation(response => {
       return response.links.next
-    } );
+    });
 
     const stream = new PagingStream({
       firstPageParams: null,
       loadPage: loadPageSpy,
       streamPage: streamPageSpy,
-      getNextPageParams: getNextPageParamsSpy
+      getNextPageParams: getNextPageParamsSpy,
+      siteDetails: {}
     });
 
     stream.on('data', () => {
@@ -243,16 +288,17 @@ describe('paging stream', () => {
 
   it('destroys stream if error occurs when getting next page params', () => {
     const nextPageError = new Error('PAGING FAILED');
-    loadPageSpy.mockResolvedValue({data: {itemid: '123s'}, links: { next: 'https://hub.arcgis.com/next'}});
+    loadPageSpy.mockResolvedValue({ data: { itemid: '123s' }, links: { next: 'https://hub.arcgis.com/next' } });
     streamPageSpy.mockImplementation((response, push) => response.data.forEach(push));
 
-    getNextPageParamsSpy.mockImplementation(_response => { throw nextPageError; } );
+    getNextPageParamsSpy.mockImplementation(_response => { throw nextPageError; });
 
     const stream = new PagingStream({
       firstPageParams: null,
       loadPage: loadPageSpy,
       streamPage: streamPageSpy,
-      getNextPageParams: getNextPageParamsSpy
+      getNextPageParams: getNextPageParamsSpy,
+      siteDetails: {}
     });
 
     stream.on('data', () => {
@@ -270,4 +316,163 @@ describe('paging stream', () => {
       }
     }));
   });
+
+  it('cache stream response if cache config is defined and cache is not available', () => {
+    const firstPageParams = faker.internet.url();
+
+    const datasets = new Array(6).fill(null).map(() => {
+      return { id: faker.datatype.uuid() };
+    });
+
+    const responses = [
+      {
+        data: {
+          features: [
+            datasets[0],
+            datasets[1],
+            datasets[2],
+          ],
+          links: {
+            next: faker.internet.url()
+          }
+        }
+      },
+      {
+        data: {
+          features: [
+            datasets[3],
+            datasets[4],
+            datasets[5],
+          ],
+          links: { /* no next link */ }
+        }
+      },
+    ];
+
+    let requestCounter = 0;
+    const cacheConfig: CacheConfig = {
+        cacheInstance: {} as unknown as Redis,
+        ttl: 50
+      }
+    loadPageSpy.mockImplementation(() => {
+      const res = Promise.resolve(responses[requestCounter]);
+      requestCounter++;
+      return res;
+    });
+    streamPageSpy.mockImplementation((response, push) => response.features.forEach(push));
+    getNextPageParamsSpy.mockImplementation(response => response.links.next);
+    mockGetCache.mockResolvedValue(undefined);
+
+    const stream = new PagingStream({
+      firstPageParams,
+      loadPage: loadPageSpy,
+      streamPage: streamPageSpy,
+      getNextPageParams: getNextPageParamsSpy,
+      siteDetails: {},
+      cacheConfig
+    });
+
+    let dataCounter = 0;
+    stream.on('data', data => {
+      expect(data).toEqual(datasets[dataCounter]);
+      dataCounter++;
+    });
+
+    return new Promise((resolve, reject) => stream.on('end', () => {
+      try {
+        // get all the mock requests and make sure they got passed to makeRequest
+        // in the right order
+        const mockRequestUrls = [firstPageParams, ...responses.map(res => res.data.links.next).filter(Boolean)];
+        mockRequestUrls.forEach((url, i) => expect(loadPageSpy).toHaveBeenNthCalledWith(i + 1, url));
+        expect(mockGetCache).toHaveBeenCalledTimes(2);
+        expect(mockGetCache).toHaveBeenNthCalledWith(1, cacheConfig, hash(firstPageParams));
+        expect(mockGetCache).toHaveBeenNthCalledWith(2, cacheConfig, hash(responses[0].data.links.next));
+
+        expect(mockSetCache).toHaveBeenCalledTimes(2);
+        expect(mockSetCache).toHaveBeenNthCalledWith(1, cacheConfig, hash(firstPageParams), JSON.stringify(responses[0].data));
+        expect(mockSetCache).toHaveBeenNthCalledWith(2, cacheConfig, hash(responses[0].data.links.next), JSON.stringify(responses[1].data));
+
+        resolve('Test Complete');
+      } catch (err) {
+        reject(err);
+      }
+    }));
+  });
+
+  it('get cached stream response if cache config is defined and cache is available', () => {
+    const firstPageParams = faker.internet.url();
+
+    const datasets = new Array(6).fill(null).map(() => {
+      return { id: faker.datatype.uuid() };
+    });
+
+    const responses = [
+      {
+        data: {
+          features: [
+            datasets[0],
+            datasets[1],
+            datasets[2],
+          ],
+          links: {
+            next: faker.internet.url()
+          }
+        }
+      },
+      {
+        data: {
+          features: [
+            datasets[3],
+            datasets[4],
+            datasets[5],
+          ],
+          links: { /* no next link */ }
+        }
+      },
+    ];
+
+    let requestCounter = 0;
+    const cacheConfig: CacheConfig = {
+        cacheInstance: {} as unknown as Redis,
+        ttl: 50
+      }
+    loadPageSpy.mockImplementation(() => {
+      const res = Promise.resolve(responses[requestCounter]);
+      requestCounter++;
+      return res;
+    });
+    streamPageSpy.mockImplementation((response, push) => response.features.forEach(push));
+    getNextPageParamsSpy.mockImplementation(response => response.links.next);
+    mockGetCache.mockResolvedValueOnce(JSON.stringify(responses[0].data)).mockResolvedValueOnce(JSON.stringify(responses[1].data));
+
+    const stream = new PagingStream({
+      firstPageParams,
+      loadPage: loadPageSpy,
+      streamPage: streamPageSpy,
+      getNextPageParams: getNextPageParamsSpy,
+      siteDetails: {},
+      cacheConfig
+    });
+
+    let dataCounter = 0;
+    stream.on('data', data => {
+      expect(data).toEqual(datasets[dataCounter]);
+      dataCounter++;
+    });
+
+    return new Promise((resolve, reject) => stream.on('end', () => {
+      try {
+
+        expect(mockGetCache).toHaveBeenCalledTimes(2);
+        expect(mockGetCache).toHaveBeenNthCalledWith(1, cacheConfig, hash(firstPageParams));
+        expect(mockGetCache).toHaveBeenNthCalledWith(2, cacheConfig, hash(responses[0].data.links.next));
+
+        expect(mockSetCache).not.toHaveBeenCalled();
+        resolve('Test Complete');
+      } catch (err) {
+        reject(err);
+      }
+    }));
+  });
+
 });
