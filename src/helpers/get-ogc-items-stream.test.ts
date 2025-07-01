@@ -2,8 +2,7 @@ import { PagingStream } from '../paging-stream';
 import * as GetPagingStream from './get-paging-stream';
 import { getOgcItemsStream } from './get-ogc-items-stream';
 import axios from 'axios';
-import { CacheConfig } from '../model';
-import Redis from 'ioredis';
+import { KoopCache } from '../model';
 import * as hash from 'object-hash';
 
 jest.mock('axios');
@@ -34,7 +33,7 @@ describe('getOgcItemsStream function', () => {
         numberMatched: 324,
       }
     });
-    const cacheConfig = undefined;
+    const cache = undefined;
 
     // Test
     const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite, undefined);
@@ -44,7 +43,7 @@ describe('getOgcItemsStream function', () => {
       1,
       'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=1',
       hubsite,
-      cacheConfig,
+      cache,
       1
     );
 
@@ -52,7 +51,7 @@ describe('getOgcItemsStream function', () => {
       2,
       'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=50&startindex=101',
       hubsite,
-      cacheConfig,
+      cache,
       1
     );
 
@@ -73,7 +72,7 @@ describe('getOgcItemsStream function', () => {
       }
     });
 
-    const cacheConfig = undefined;
+    const cache = undefined;
 
     // Test
     const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite, undefined);
@@ -85,7 +84,7 @@ describe('getOgcItemsStream function', () => {
       1,
       'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=1',
       hubsite,
-      cacheConfig,
+      cache,
       1
     );
 
@@ -93,7 +92,7 @@ describe('getOgcItemsStream function', () => {
       2,
       'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=101',
       hubsite,
-      cacheConfig,
+      cache,
       1
     );
 
@@ -101,7 +100,7 @@ describe('getOgcItemsStream function', () => {
       3,
       'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=201',
       hubsite,
-      cacheConfig,
+      cache,
       1
     );
 
@@ -109,7 +108,7 @@ describe('getOgcItemsStream function', () => {
       4,
       'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=301',
       hubsite,
-      cacheConfig,
+      cache,
       1
     );
 
@@ -162,21 +161,17 @@ describe('getOgcItemsStream function', () => {
       return Promise.resolve(undefined)
     });
 
-    const ttl = 50;
-    const cacheConfig: CacheConfig = {
-      cacheInstance: {
-        set: mockSet,
-        get: mockGet,
-      } as unknown as Redis,
-      ttl
-    };
+    const cache: KoopCache = {
+      set: mockSet,
+      get: mockGet
+    } as unknown as KoopCache;
 
     // Test
-    const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite, cacheConfig);
+    const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite, cache);
 
     expect(mockGet).toHaveBeenCalledWith(hash({ siteUrl, ogcSearchRequestOpts }));
 
-    expect(mockSet).toHaveBeenCalledWith(hash({ siteUrl, ogcSearchRequestOpts }), totalCount, 'PX', ttl);
+    expect(mockSet).toHaveBeenCalledWith(hash({ siteUrl, ogcSearchRequestOpts }), totalCount);
 
     expect(streams).toHaveLength(1);
 
@@ -186,7 +181,7 @@ describe('getOgcItemsStream function', () => {
       1,
       'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=1',
       hubsite,
-      cacheConfig,
+      cache,
       1
     );
 
@@ -217,17 +212,13 @@ describe('getOgcItemsStream function', () => {
       return Promise.resolve(String(totalCount))
     });
 
-    const ttl = 50;
-    const cacheConfig: CacheConfig = {
-      cacheInstance: {
-        set: mockSet,
-        get: mockGet,
-      } as unknown as Redis,
-      ttl
-    };
+    const cache: KoopCache = {
+      set: mockSet,
+      get: mockGet
+    } as unknown as KoopCache;
 
     // Test
-    const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite, cacheConfig);
+    const streams: PagingStream[] = await getOgcItemsStream(siteUrl, ogcSearchRequestOpts, hubsite, cache);
 
     expect(mockGet).toHaveBeenCalledWith(hash({ siteUrl, ogcSearchRequestOpts }));
 
@@ -241,7 +232,7 @@ describe('getOgcItemsStream function', () => {
       1,
       'https://my-site.hub.arcgis.com/api/search/v1/collections/all/items?limit=100&startindex=1',
       hubsite,
-      cacheConfig,
+      cache,
       1
     );
 

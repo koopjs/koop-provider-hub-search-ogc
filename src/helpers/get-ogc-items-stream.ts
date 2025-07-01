@@ -4,16 +4,16 @@ import * as _ from 'lodash';
 import axios from 'axios';
 import { getBatchingParams } from './get-batching-params';
 import { getBatchPageKeys } from './get-batch-page-keys';
-import { CacheConfig, SearchRequestOpts } from '../model';
+import { KoopCache, SearchRequestOpts } from '../model';
 import * as hash from 'object-hash';
 import { getCache, setCache } from './cache';
 
 const MAX_LIMIT = 100; // maximum limit supported by OGC Hub Search API
 
 export const getOgcItemsStream =
-  async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, siteDetails: Record<string, any>, cacheConfig: CacheConfig | undefined): Promise<PagingStream[]> => {
+  async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, siteDetails: Record<string, any>, cache: KoopCache | undefined): Promise<PagingStream[]> => {
 
-    const totalCount = await getCachedTotalCount(siteUrl, ogcSearchRequestOpts, cacheConfig) ?? await getTotalCount(siteUrl, ogcSearchRequestOpts, cacheConfig);
+    const totalCount = await getCachedTotalCount(siteUrl, ogcSearchRequestOpts, cache) ?? await getTotalCount(siteUrl, ogcSearchRequestOpts, cache);
 
     const { numBatches, pagesPerBatch, pageSize } = getBatchingParams(totalCount, _.get(ogcSearchRequestOpts, 'queryParams.limit'));
 
@@ -30,7 +30,7 @@ export const getOgcItemsStream =
       return getPagingStream(
         req,
         siteDetails,
-        cacheConfig,
+        cache,
         getPagesPerBatch(_.get(ogcSearchRequestOpts, 'queryParams.limit'), index, requests, pagesPerBatch),
       );
     });
@@ -44,7 +44,7 @@ const buildSearchRequestUrl = (siteUrl: string, ogcSearchRequestOpts: SearchRequ
   return `${siteUrl}/api/search/v1/collections/${ogcSearchRequestOpts.collectionKey}/items?${searchParams}`;
 };
 
-const getTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, cacheConfig: CacheConfig) => {
+const getTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, cache: KoopCache) => {
   const searchRequest = _.cloneDeep(ogcSearchRequestOpts.queryParams);
   searchRequest.limit = 0;
   searchRequest.startindex = 1;
@@ -52,7 +52,7 @@ const getTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchReques
   const fetchUrl = `${siteUrl}/api/search/v1/collections/${ogcSearchRequestOpts.collectionKey}/items?${searchParams}`;
   const res = await axios.get(fetchUrl);
   const count = _.get(res, 'data.numberMatched');
-  await setCache(cacheConfig, hash({ siteUrl, ogcSearchRequestOpts }), count);
+  await setCache(cache, hash({ siteUrl, ogcSearchRequestOpts }), count);
   return count;
 };
 
@@ -65,8 +65,8 @@ const getPagesPerBatch = (limit: number, requestIndex: number, requests: any, pa
   return limit ? (requestIndex + 1 === requests.length ? 1 : pagesPerBatch) : pagesPerBatch;
 };
 
-const getCachedTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, cacheConfig: CacheConfig): Promise<number | void> => {
-  const cachedValue = await getCache(cacheConfig, hash({ siteUrl, ogcSearchRequestOpts }));
+const getCachedTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, cache: KoopCache): Promise<number | void> => {
+  const cachedValue = await getCache(cache, hash({ siteUrl, ogcSearchRequestOpts }));
   if (cachedValue) {
     return Number(cachedValue);
   }

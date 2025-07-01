@@ -2,9 +2,9 @@ import { PagingStream } from "../paging-stream";
 // TODO: Consider using native fetch
 import axios from 'axios';
 import * as _ from 'lodash';
-import { CacheConfig } from "../model";
+import { KoopCache } from "../model";
 
-export const getPagingStream = (searchRequestParam: string, siteDetails: Record<string, string>, cacheConfig?: CacheConfig, pagesPerBatch?: number): PagingStream => {
+export const getPagingStream = (searchRequestParam: string, siteDetails: Record<string, string>, cache?: KoopCache, pagesPerBatch?: number): PagingStream => {
   return new PagingStream({
     firstPageParams: searchRequestParam,
 
@@ -16,7 +16,7 @@ export const getPagingStream = (searchRequestParam: string, siteDetails: Record<
 
     getNextPageParams: response => _.get(response, 'links', []).find(link => link.rel === 'next')?.href,
 
-    cacheConfig,
+    cache,
 
     siteDetails,
 

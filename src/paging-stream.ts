@@ -2,7 +2,7 @@ import { Readable } from "stream";
 import * as hash from 'object-hash';
 import * as _ from 'lodash';
 import { enrichDataset } from "./helpers/enrich-dataset";
-import { CacheConfig } from "./model";
+import { KoopCache } from "./model";
 import { getCache, setCache } from "./helpers/cache";
 
 export interface PagingStreamOptions {
@@ -11,7 +11,7 @@ export interface PagingStreamOptions {
   streamPage: (response: any, push: typeof Readable.prototype.push) => any;
   getNextPageParams: (response: any) => any;
   siteDetails: Record<string, any>;
-  cacheConfig?: CacheConfig | undefined;
+  cache?: KoopCache | undefined;
   pageLimit?: number;
 }
 
@@ -22,7 +22,7 @@ export class PagingStream extends Readable {
   private _getNextPageParams;
   private _pageLimit;
   private _currPage = 0;
-  private _cacheConfig;
+  private _cache;
   private _siteDetails;
 
   constructor({
@@ -30,7 +30,7 @@ export class PagingStream extends Readable {
     loadPage,
     streamPage,
     getNextPageParams,
-    cacheConfig,
+    cache,
     siteDetails,
     pageLimit = Number.MAX_SAFE_INTEGER
   }: PagingStreamOptions) {
@@ -41,13 +41,13 @@ export class PagingStream extends Readable {
     this._streamPage = streamPage;
     this._getNextPageParams = getNextPageParams;
     this._pageLimit = pageLimit;
-    this._cacheConfig = cacheConfig;
+    this._cache = cache;
     this._siteDetails = siteDetails;
   }
 
   async _read() {
     try {
-      let response: any = await getCache(this._cacheConfig, hash(this._nextPageParams));;
+      let response: any = await getCache(this._cache, hash(this._nextPageParams));;
 
       if (response) {
         response = JSON.parse(response);
@@ -56,7 +56,7 @@ export class PagingStream extends Readable {
         response = rawResponse.data;
         const enrichedResponse = _.cloneDeep(response);
         enrichedResponse.features = _.get(response, 'features', []).map((result: Record<string, any>) => enrichDataset(result, this._siteDetails));
-        await setCache(this._cacheConfig, hash(this._nextPageParams), JSON.stringify(enrichedResponse));
+        await setCache(this._cache, hash(this._nextPageParams), JSON.stringify(enrichedResponse));
       }
 
       this._currPage++;

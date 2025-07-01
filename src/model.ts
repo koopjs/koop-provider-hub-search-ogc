@@ -9,11 +9,10 @@ import {
 } from '@esri/hub-common';
 import * as _ from 'lodash';
 import { HubSite } from './helpers/enrich-dataset';
-import Redis from 'ioredis';
 
-export type CacheConfig = {
-  cacheInstance: Redis,
-  ttl: number,
+export type KoopCache = {
+  set: (key: string, value: string) => Promise<boolean>,
+  get: (key: string) => Promise<string>,
 };
 
 export type SearchRequestOpts = {
@@ -40,7 +39,7 @@ export class HubApiModel {
       },
       app: {
         locals: {
-          cacheConfig,
+          cache,
           log,
         } = {}
       }
@@ -70,7 +69,7 @@ export class HubApiModel {
         siteIdentifier,
         ogcSearchRequestOpts,
         siteDetails,
-        cacheConfig
+        cache
       );
 
       const pass: PassThrough = new PassThrough({ objectMode: true });

@@ -80,7 +80,7 @@ describe('HubApiModel', () => {
       portalUrl: 'https://devext.arcgis.com',
       siteUrl: 'https://my-site.hub.arcgis.com'
     };
-    const cacheConfig = undefined;
+    const cache = undefined;
 
     const mockedResponses = new Array(batches).fill(null).map(() => {
       return new Array(pagesPerBatch).fill(null).map(() => {
@@ -139,7 +139,7 @@ describe('HubApiModel', () => {
         },
       },
       siteDetails,
-      cacheConfig
+      cache
     );
     expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
     expect(actualResponses[0]).toEqual(mockedResponses[0][0][0]);
@@ -192,7 +192,7 @@ describe('HubApiModel', () => {
       portalUrl: 'https://devext.arcgis.com',
       siteUrl: 'https://my-site.hub.arcgis.com'
     };
-    const cacheConfig = undefined;
+    const cache = undefined;
 
     const mockedResponses = new Array(batches).fill(null).map(() => {
       return new Array(pagesPerBatch).fill(null).map(() => {
@@ -250,7 +250,7 @@ describe('HubApiModel', () => {
         },
       },
       siteDetails,
-      cacheConfig
+      cache
     );
 
     expect(mockEnrichDataset).toHaveBeenCalledTimes(batches * pagesPerBatch * resultsPerPage);
@@ -305,7 +305,7 @@ describe('HubApiModel', () => {
       portalUrl: 'https://devext.arcgis.com',
       siteUrl: 'https://my-site.hub.arcgis.com'
     };
-    const cacheConfig = undefined;
+    const cache = undefined;
 
     const mockedResponses = new Array(batches).fill(null).map(() => {
       return new Array(pagesPerBatch).fill(null).map(() => {
@@ -365,7 +365,7 @@ describe('HubApiModel', () => {
           },
         },
         siteDetails,
-        cacheConfig
+        cache
       );
 
       expect(mockEnrichDataset).toHaveBeenCalledTimes(batches * pagesPerBatch * resultsPerPage);
@@ -422,7 +422,7 @@ describe('HubApiModel', () => {
       portalUrl: 'https://devext.arcgis.com',
       siteUrl: 'https://my-site.hub.arcgis.com'
     };
-    const cacheConfig = undefined;
+    const cache = undefined;
 
     mockGetBatchStreams.mockImplementationOnce(() => {
       return Promise.resolve([]);
@@ -449,7 +449,7 @@ describe('HubApiModel', () => {
           },
         },
         siteDetails,
-        cacheConfig
+        cache
       );
       expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
     } catch (err) {
@@ -486,7 +486,7 @@ describe('HubApiModel', () => {
       portalUrl: 'https://devext.arcgis.com',
       siteUrl: 'https://my-site.hub.arcgis.com'
     };
-    const cacheConfig = undefined;
+    const cache = undefined;
 
     mockGetBatchStreams.mockImplementationOnce(() => {
       return Promise.resolve([]);
@@ -514,7 +514,7 @@ describe('HubApiModel', () => {
           }
         },
         siteDetails,
-        cacheConfig
+        cache
       );
       expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
     } catch (err) {
@@ -547,7 +547,7 @@ describe('HubApiModel', () => {
       portalUrl: 'https://devext.arcgis.com',
       siteUrl: 'https://my-site.hub.arcgis.com'
     };
-    const cacheConfig = undefined;
+    const cache = undefined;
 
 
     mockGetBatchStreams.mockImplementationOnce(() => {
@@ -574,7 +574,7 @@ describe('HubApiModel', () => {
           },
         },
         siteDetails,
-        cacheConfig
+        cache
       );
 
     } catch (err) {
@@ -606,7 +606,7 @@ describe('HubApiModel', () => {
       portalUrl: 'https://qaext.arcgis.com',
       siteUrl: 'https://my-site.hub.arcgis.com'
     };
-    const cacheConfig = undefined;
+    const cache = undefined;
 
 
     mockGetBatchStreams.mockImplementationOnce(() => {
@@ -632,7 +632,7 @@ describe('HubApiModel', () => {
         },
       },
       siteDetails,
-      cacheConfig
+      cache
     );
   });
 

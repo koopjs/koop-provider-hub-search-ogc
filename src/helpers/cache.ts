@@ -1,17 +1,15 @@
-import { CacheConfig } from "../model";
+import { KoopCache } from "../model";
 
-export const getCache = async (cacheConfig: CacheConfig | undefined, key: string): Promise<string | void> => {
-  if (cacheConfig) {
-    const { cacheInstance } = cacheConfig;
-    const cachedValue = await cacheInstance.get(key);
+export const getCache = async (cache: KoopCache | undefined, key: string): Promise<string | void> => {
+  if (cache) {
+    const cachedValue = await cache.get(key);
     return cachedValue;
   };
 };
 
-export const setCache = async (cacheConfig: CacheConfig | undefined, key: string, val: string): Promise<boolean | void> => {
-  if (cacheConfig) {
-    const { cacheInstance, ttl } = cacheConfig;
-    await cacheInstance.set(key, val, 'PX', ttl);
+export const setCache = async (cache: KoopCache | undefined, key: string, val: string): Promise<boolean | void> => {
+  if (cache) {
+    await cache.set(key, val);
     return true;
   };
 };

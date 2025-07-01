@@ -12,8 +12,7 @@ jest.mock('./helpers/cache', () => ({
 }));
 import { enrichDataset } from './helpers/enrich-dataset';
 import { setCache, getCache } from './helpers/cache';
-import Redis from 'ioredis';
-import { CacheConfig } from './model';
+import { KoopCache } from './model';
 import * as hash from 'object-hash';
 
 describe('paging stream', () => {
@@ -350,10 +349,11 @@ describe('paging stream', () => {
     ];
 
     let requestCounter = 0;
-    const cacheConfig: CacheConfig = {
-        cacheInstance: {} as unknown as Redis,
-        ttl: 50
-      }
+    const cache: KoopCache = {
+        set: {},
+        get: {}
+      } as unknown as KoopCache;
+    
     loadPageSpy.mockImplementation(() => {
       const res = Promise.resolve(responses[requestCounter]);
       requestCounter++;
@@ -369,7 +369,7 @@ describe('paging stream', () => {
       streamPage: streamPageSpy,
       getNextPageParams: getNextPageParamsSpy,
       siteDetails: {},
-      cacheConfig
+      cache
     });
 
     let dataCounter = 0;
@@ -385,12 +385,12 @@ describe('paging stream', () => {
         const mockRequestUrls = [firstPageParams, ...responses.map(res => res.data.links.next).filter(Boolean)];
         mockRequestUrls.forEach((url, i) => expect(loadPageSpy).toHaveBeenNthCalledWith(i + 1, url));
         expect(mockGetCache).toHaveBeenCalledTimes(2);
-        expect(mockGetCache).toHaveBeenNthCalledWith(1, cacheConfig, hash(firstPageParams));
-        expect(mockGetCache).toHaveBeenNthCalledWith(2, cacheConfig, hash(responses[0].data.links.next));
+        expect(mockGetCache).toHaveBeenNthCalledWith(1, cache, hash(firstPageParams));
+        expect(mockGetCache).toHaveBeenNthCalledWith(2, cache, hash(responses[0].data.links.next));
 
         expect(mockSetCache).toHaveBeenCalledTimes(2);
-        expect(mockSetCache).toHaveBeenNthCalledWith(1, cacheConfig, hash(firstPageParams), JSON.stringify(responses[0].data));
-        expect(mockSetCache).toHaveBeenNthCalledWith(2, cacheConfig, hash(responses[0].data.links.next), JSON.stringify(responses[1].data));
+        expect(mockSetCache).toHaveBeenNthCalledWith(1, cache, hash(firstPageParams), JSON.stringify(responses[0].data));
+        expect(mockSetCache).toHaveBeenNthCalledWith(2, cache, hash(responses[0].data.links.next), JSON.stringify(responses[1].data));
 
         resolve('Test Complete');
       } catch (err) {
@@ -432,10 +432,10 @@ describe('paging stream', () => {
     ];
 
     let requestCounter = 0;
-    const cacheConfig: CacheConfig = {
-        cacheInstance: {} as unknown as Redis,
-        ttl: 50
-      }
+    const cache: KoopCache = {
+        set: {},
+        get: {}
+      } as unknown as KoopCache;
     loadPageSpy.mockImplementation(() => {
       const res = Promise.resolve(responses[requestCounter]);
       requestCounter++;
@@ -451,7 +451,7 @@ describe('paging stream', () => {
       streamPage: streamPageSpy,
       getNextPageParams: getNextPageParamsSpy,
       siteDetails: {},
-      cacheConfig
+      cache
     });
 
     let dataCounter = 0;
@@ -464,8 +464,8 @@ describe('paging stream', () => {
       try {
 
         expect(mockGetCache).toHaveBeenCalledTimes(2);
-        expect(mockGetCache).toHaveBeenNthCalledWith(1, cacheConfig, hash(firstPageParams));
-        expect(mockGetCache).toHaveBeenNthCalledWith(2, cacheConfig, hash(responses[0].data.links.next));
+        expect(mockGetCache).toHaveBeenNthCalledWith(1, cache, hash(firstPageParams));
+        expect(mockGetCache).toHaveBeenNthCalledWith(2, cache, hash(responses[0].data.links.next));
 
         expect(mockSetCache).not.toHaveBeenCalled();
         resolve('Test Complete');
