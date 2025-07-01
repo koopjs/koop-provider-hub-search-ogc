@@ -11,9 +11,9 @@ import { getCache, setCache } from './cache';
 const MAX_LIMIT = 100; // maximum limit supported by OGC Hub Search API
 
 export const getOgcItemsStream =
-  async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, siteDetails: Record<string, any>, cache: KoopCache | undefined): Promise<PagingStream[]> => {
+  async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, siteDetails: Record<string, any>, cache?: KoopCache): Promise<PagingStream[]> => {
 
-    const totalCount = await getCachedTotalCount(siteUrl, ogcSearchRequestOpts, cache) ?? await getTotalCount(siteUrl, ogcSearchRequestOpts, cache);
+    const totalCount = await getTotalCount(siteUrl, ogcSearchRequestOpts, cache);
 
     const { numBatches, pagesPerBatch, pageSize } = getBatchingParams(totalCount, _.get(ogcSearchRequestOpts, 'queryParams.limit'));
 
@@ -45,14 +45,25 @@ const buildSearchRequestUrl = (siteUrl: string, ogcSearchRequestOpts: SearchRequ
 };
 
 const getTotalCount = async (siteUrl: string, ogcSearchRequestOpts: SearchRequestOpts, cache: KoopCache) => {
+  
+  const cachedTotalCount = await getCachedTotalCount(siteUrl, ogcSearchRequestOpts, cache);
+  
+  if (cachedTotalCount) {
+    return cachedTotalCount;
+  }
+
   const searchRequest = _.cloneDeep(ogcSearchRequestOpts.queryParams);
   searchRequest.limit = 0;
   searchRequest.startindex = 1;
   const searchParams = new URLSearchParams(searchRequest).toString();
   const fetchUrl = `${siteUrl}/api/search/v1/collections/${ogcSearchRequestOpts.collectionKey}/items?${searchParams}`;
+
   const res = await axios.get(fetchUrl);
+  
   const count = _.get(res, 'data.numberMatched');
+
   await setCache(cache, hash({ siteUrl, ogcSearchRequestOpts }), count);
+
   return count;
 };
 
