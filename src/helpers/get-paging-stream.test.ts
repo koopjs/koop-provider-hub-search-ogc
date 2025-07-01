@@ -52,7 +52,7 @@ describe('getPagingStream function', () => {
       const responses = [];
       mockEnrichDataset.mockReturnValue(geojson);
 
-      const stream: PagingStream = getPagingStream(searchRequestParam, siteDetails, pagesPerBatch);
+      const stream: PagingStream = getPagingStream(searchRequestParam, siteDetails, undefined, pagesPerBatch);
       const pass = new PassThrough({ objectMode: true });
       pass.on('data', data => {
         responses.push(data);
@@ -65,7 +65,7 @@ describe('getPagingStream function', () => {
       expect(axios.get).toBeCalledTimes(1);
       expect(axios.get).toHaveBeenNthCalledWith(1, searchRequestParam);
       expect(responses).toHaveLength(1);
-      expect(_.get(responses, '[0].features.[0]')).toStrictEqual(_.get(mockedResponse, 'data.features[0]'));
+      expect(responses[0]).toStrictEqual(_.get(mockedResponse, 'data.features[0]'));
     } catch (err) {
       fail(err);
     }
@@ -139,7 +139,7 @@ describe('getPagingStream function', () => {
       mockEnrichDataset.mockReturnValueOnce(_.get(mockedResponseOne, 'data.features[0]'));
       mockEnrichDataset.mockReturnValueOnce(_.get(mockedResponseTwo, 'data.features[0]'));
 
-      const stream: PagingStream = getPagingStream(searchRequestParam, siteDetails, pagesPerBatch);
+      const stream: PagingStream = getPagingStream(searchRequestParam, siteDetails, undefined, pagesPerBatch);
       const pass = new PassThrough({ objectMode: true });
       pass.on('data', data => {
         responses.push(data);

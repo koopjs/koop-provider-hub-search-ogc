@@ -10,6 +10,11 @@ import {
 import * as _ from 'lodash';
 import { HubSite } from './helpers/enrich-dataset';
 
+export type KoopCache = {
+  set: (key: string, value: string) => Promise<boolean>,
+  get: (key: string) => Promise<string>,
+};
+
 export type SearchRequestOpts = {
   queryParams: Record<string, any>,
   collectionKey: string,
@@ -29,9 +34,15 @@ export class HubApiModel {
       res: {
         locals: {
           siteIdentifier,
-          ogcSearchRequestOpts,
+          ogcSearchRequestOpts
         }
       },
+      app: {
+        locals: {
+          cache,
+          log,
+        } = {}
+      }
     } = request;
 
     const { arcgisPortal } = request.app.locals;
@@ -57,7 +68,8 @@ export class HubApiModel {
       const pagingStreams: PagingStream[] = await getOgcItemsStream(
         siteIdentifier,
         ogcSearchRequestOpts,
-        siteDetails
+        siteDetails,
+        cache
       );
 
       const pass: PassThrough = new PassThrough({ objectMode: true });
@@ -65,11 +77,14 @@ export class HubApiModel {
         ? this.combineStreamsInSequence(pagingStreams, pass)
         : this.combineStreamsNotInSequence(pagingStreams, pass);
 
-    } catch (err) {
+    } catch (error) {
+      if (log) {
+        log.error(error);
+      }
       throw new RemoteServerError(
-        _.get(err, 'response.data.message', 'Error getting search catalog'),
+        _.get(error, 'response.data.message', 'Error getting search catalog'),
         arcgisPortal,
-        _.get(err, 'response.data.statusCode', 500)
+        _.get(error, 'response.data.statusCode', 500)
       );
     }
   }

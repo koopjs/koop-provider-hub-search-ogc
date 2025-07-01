@@ -7,6 +7,7 @@ import { PassThrough, pipeline } from 'stream';
 import { promisify } from 'util';
 import { lookupDomain } from '@esri/hub-common';
 import { getOgcItemsStream } from './helpers/get-ogc-items-stream';
+import { enrichDataset } from './helpers/enrich-dataset';
 
 jest.mock('@esri/hub-search');
 jest.mock('./helpers/get-ogc-items-stream');
@@ -17,13 +18,21 @@ jest.mock('@esri/hub-common', () => ({
   fetchSiteModel: jest.fn()
 }));
 
+jest.mock('./helpers/enrich-dataset', () => ({
+  ...(jest.requireActual('./helpers/enrich-dataset') as object),
+  enrichDataset: jest.fn()
+}));
+
 describe('HubApiModel', () => {
   // this is just to make the type checker happy
   const mockGetBatchStreams = getOgcItemsStream as unknown as jest.MockedFunction<typeof getOgcItemsStream>;
   const mockLookupDomain = lookupDomain as unknown as jest.MockedFunction<typeof lookupDomain>;
+  const mockEnrichDataset = enrichDataset as unknown as jest.MockedFunction<typeof enrichDataset>;
 
   beforeEach(() => {
     mockGetBatchStreams.mockReset();
+    mockEnrichDataset.mockReset();
+    mockEnrichDataset.mockImplementation((result, _siteDetails) => result);
 
     mockLookupDomain.mockReset();
     mockLookupDomain.mockResolvedValue({
@@ -63,7 +72,15 @@ describe('HubApiModel', () => {
     // Mock
     const batches = 3;
     const pagesPerBatch = 2;
-    const resultsPerPage = 3
+    const resultsPerPage = 3;
+
+    const siteDetails = {
+      orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+      orgTitle: 'Test Org',
+      portalUrl: 'https://devext.arcgis.com',
+      siteUrl: 'https://my-site.hub.arcgis.com'
+    };
+    const cache = undefined;
 
     const mockedResponses = new Array(batches).fill(null).map(() => {
       return new Array(pagesPerBatch).fill(null).map(() => {
@@ -81,19 +98,20 @@ describe('HubApiModel', () => {
           if (currPage >= batchPages.length) {
             return null
           } else {
-            return () => batchPages[currPage++];
+            return () => { return { data: { features: batchPages[currPage++] } } };
           }
         },
         loadPage: async (params) => {
           if (typeof params === 'function') {
             return params()
           } else {
-            return batchPages[currPage++]
+            return { data: { features: batchPages[currPage++] } }
           }
         },
         streamPage: (response, push) => {
-          response.forEach(result => push(result));
-        }
+          _.get(response, 'features', []).forEach(result => push(result));
+        },
+        siteDetails
       })
     });
 
@@ -111,6 +129,7 @@ describe('HubApiModel', () => {
     await pipe(stream, pass);
 
     expect(mockGetBatchStreams).toHaveBeenCalledTimes(1);
+    expect(mockEnrichDataset).toHaveBeenCalledTimes(batches * pagesPerBatch * resultsPerPage);
     expect(mockGetBatchStreams).toHaveBeenNthCalledWith(
       1,
       'https://my-site.hub.arcgis.com',
@@ -119,7 +138,8 @@ describe('HubApiModel', () => {
           q: 'test'
         },
       },
-      { orgBaseUrl: 'https://org-key.mapsdev.arcgis.com', orgTitle: 'Test Org', portalUrl: 'https://devext.arcgis.com', siteUrl: 'https://my-site.hub.arcgis.com' }
+      siteDetails,
+      cache
     );
     expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
     expect(actualResponses[0]).toEqual(mockedResponses[0][0][0]);
@@ -164,7 +184,15 @@ describe('HubApiModel', () => {
     // Mock
     const batches = 3;
     const pagesPerBatch = 2;
-    const resultsPerPage = 3
+    const resultsPerPage = 3;
+
+    const siteDetails = {
+      orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+      orgTitle: 'Test Org',
+      portalUrl: 'https://devext.arcgis.com',
+      siteUrl: 'https://my-site.hub.arcgis.com'
+    };
+    const cache = undefined;
 
     const mockedResponses = new Array(batches).fill(null).map(() => {
       return new Array(pagesPerBatch).fill(null).map(() => {
@@ -182,19 +210,20 @@ describe('HubApiModel', () => {
           if (currPage >= batchPages.length) {
             return null
           } else {
-            return () => batchPages[currPage++];
+            return () => { return { data: { features: batchPages[currPage++] } } };
           }
         },
         loadPage: async (params) => {
           if (typeof params === 'function') {
             return params()
           } else {
-            return batchPages[currPage++]
+            return { data: { features: batchPages[currPage++] } }
           }
         },
         streamPage: (response, push) => {
-          response.forEach(result => push(result));
-        }
+          _.get(response, 'features', []).forEach(result => push(result));
+        },
+        siteDetails
       })
     });
 
@@ -220,9 +249,11 @@ describe('HubApiModel', () => {
           sortBy: '+properties.modified'
         },
       },
-      { orgBaseUrl: 'https://org-key.mapsdev.arcgis.com', orgTitle: 'Test Org', portalUrl: 'https://devext.arcgis.com', siteUrl: 'https://my-site.hub.arcgis.com' }
+      siteDetails,
+      cache
     );
 
+    expect(mockEnrichDataset).toHaveBeenCalledTimes(batches * pagesPerBatch * resultsPerPage);
     expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
     expect(actualResponses[0]).toEqual(mockedResponses[0][0][0]);
     expect(actualResponses[1]).toEqual(mockedResponses[0][0][1]);
@@ -266,7 +297,15 @@ describe('HubApiModel', () => {
     // Mock
     const batches = 3;
     const pagesPerBatch = 2;
-    const resultsPerPage = 3
+    const resultsPerPage = 3;
+
+    const siteDetails = {
+      orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+      orgTitle: 'Test Org',
+      portalUrl: 'https://devext.arcgis.com',
+      siteUrl: 'https://my-site.hub.arcgis.com'
+    };
+    const cache = undefined;
 
     const mockedResponses = new Array(batches).fill(null).map(() => {
       return new Array(pagesPerBatch).fill(null).map(() => {
@@ -284,19 +323,20 @@ describe('HubApiModel', () => {
           if (currPage >= batchPages.length) {
             return null
           } else {
-            return () => batchPages[currPage++];
+            return () => { return { data: { features: batchPages[currPage++] } } };
           }
         },
         loadPage: async (params) => {
           if (typeof params === 'function') {
             return params()
           } else {
-            return batchPages[currPage++]
+            return { data: { features: batchPages[currPage++] } }
           }
         },
         streamPage: (response, push) => {
-          response.forEach(result => push(result));
-        }
+          _.get(response, 'features', []).forEach(result => push(result));
+        },
+        siteDetails
       })
     });
 
@@ -324,14 +364,11 @@ describe('HubApiModel', () => {
             q: 'test',
           },
         },
-        {
-          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
-          orgTitle: 'Test Org',
-          portalUrl: 'https://devext.arcgis.com',
-          siteUrl: 'https://my-site.hub.arcgis.com'
-        }
+        siteDetails,
+        cache
       );
 
+      expect(mockEnrichDataset).toHaveBeenCalledTimes(batches * pagesPerBatch * resultsPerPage);
       expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
       expect(actualResponses[0]).toEqual(mockedResponses[0][0][0]);
       expect(actualResponses[1]).toEqual(mockedResponses[0][0][1]);
@@ -379,6 +416,14 @@ describe('HubApiModel', () => {
     const pagesPerBatch = 0;
     const resultsPerPage = 0;
 
+    const siteDetails = {
+      orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+      orgTitle: 'Test Org',
+      portalUrl: 'https://devext.arcgis.com',
+      siteUrl: 'https://my-site.hub.arcgis.com'
+    };
+    const cache = undefined;
+
     mockGetBatchStreams.mockImplementationOnce(() => {
       return Promise.resolve([]);
     });
@@ -403,12 +448,8 @@ describe('HubApiModel', () => {
             q: 'test',
           },
         },
-        {
-          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
-          orgTitle: 'Test Org',
-          portalUrl: 'https://devext.arcgis.com',
-          siteUrl: 'https://my-site.hub.arcgis.com'
-        }
+        siteDetails,
+        cache
       );
       expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
     } catch (err) {
@@ -439,6 +480,14 @@ describe('HubApiModel', () => {
     const pagesPerBatch = 0;
     const resultsPerPage = 0;
 
+    const siteDetails = {
+      orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+      orgTitle: 'Test Org',
+      portalUrl: 'https://devext.arcgis.com',
+      siteUrl: 'https://my-site.hub.arcgis.com'
+    };
+    const cache = undefined;
+
     mockGetBatchStreams.mockImplementationOnce(() => {
       return Promise.resolve([]);
     });
@@ -464,12 +513,8 @@ describe('HubApiModel', () => {
             sortBy: '+properties.modified'
           }
         },
-        {
-          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
-          orgTitle: 'Test Org',
-          portalUrl: 'https://devext.arcgis.com',
-          siteUrl: 'https://my-site.hub.arcgis.com'
-        }
+        siteDetails,
+        cache
       );
       expect(actualResponses).toHaveLength(batches * pagesPerBatch * resultsPerPage);
     } catch (err) {
@@ -496,6 +541,14 @@ describe('HubApiModel', () => {
       app: { locals: { arcgisPortal: 'https://devext.arcgis.com' } },
     } as unknown as Request;
 
+    const siteDetails = {
+      orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
+      orgTitle: 'Test Org',
+      portalUrl: 'https://devext.arcgis.com',
+      siteUrl: 'https://my-site.hub.arcgis.com'
+    };
+    const cache = undefined;
+
 
     mockGetBatchStreams.mockImplementationOnce(() => {
       return Promise.resolve([]);
@@ -520,12 +573,9 @@ describe('HubApiModel', () => {
             q: 'test',
           },
         },
-        {
-          orgBaseUrl: 'https://org-key.mapsdev.arcgis.com',
-          orgTitle: 'Test Org',
-          portalUrl: 'https://devext.arcgis.com',
-          siteUrl: 'https://my-site.hub.arcgis.com'
-        });
+        siteDetails,
+        cache
+      );
 
     } catch (err) {
       fail(err);
@@ -550,6 +600,14 @@ describe('HubApiModel', () => {
       app: { locals: { arcgisPortal: 'https://qaext.arcgis.com' } },
     } as unknown as Request;
 
+    const siteDetails = {
+      orgBaseUrl: 'https://org-key.mapsqa.arcgis.com',
+      orgTitle: 'Test Org',
+      portalUrl: 'https://qaext.arcgis.com',
+      siteUrl: 'https://my-site.hub.arcgis.com'
+    };
+    const cache = undefined;
+
 
     mockGetBatchStreams.mockImplementationOnce(() => {
       return Promise.resolve([]);
@@ -573,12 +631,9 @@ describe('HubApiModel', () => {
           q: 'test',
         },
       },
-      {
-        orgBaseUrl: 'https://org-key.mapsqa.arcgis.com',
-        orgTitle: 'Test Org',
-        portalUrl: 'https://qaext.arcgis.com',
-        siteUrl: 'https://my-site.hub.arcgis.com'
-      });
+      siteDetails,
+      cache
+    );
   });
 
   it('throws error with an siteIdentifier is not provided', async () => {
@@ -708,7 +763,7 @@ describe('HubApiModel', () => {
           if (currPage >= batchPages.length) {
             return null
           } else {
-            return () => batchPages[currPage++];
+            return () => { return { data: { features: batchPages[currPage++] } } };
           }
         },
         loadPage: async (params) => {
@@ -717,12 +772,13 @@ describe('HubApiModel', () => {
           } else if (typeof params === 'function') {
             return params()
           } else {
-            return batchPages[currPage++]
+            return { data: { features: batchPages[currPage++] } }
           }
         },
         streamPage: (response, push) => {
-          response.forEach(result => push(result));
-        }
+          _.get(response, 'features', []).forEach(result => push(result));
+        },
+        siteDetails: {},
       })
     });
 
@@ -811,7 +867,8 @@ describe('HubApiModel', () => {
         },
         streamPage: (response, push) => {
           response.forEach(result => push(result));
-        }
+        },
+        siteDetails: {}
       })
     });
 
@@ -904,7 +961,8 @@ describe('HubApiModel', () => {
         },
         streamPage: (response, push) => {
           response.forEach(result => push(result));
-        }
+        },
+        siteDetails: {}
       })
     });
 
