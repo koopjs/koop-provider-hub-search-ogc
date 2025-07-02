@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.4.0
+Added
+- Cache
+
 ## 1.3.1
 Fixed
 - Distribution URLs constructions when `undefined` dataset URL 
