@@ -55,6 +55,7 @@ describe('enrichDataset function', () => {
             source: 'Test Source',
             id: '123a_0',
             type: 'Feature Layer',
+            contactEmailFromMetadata: undefined,
             url: 'https://services1.arcgis.com/jUJYIo9tSA7EHvfZ/arcgis/rest/services/DCAT_Test/FeatureServer/0',
             layer: { geometryType: 'esriGeometryPolygon' },
             server: { spatialReference: { latestWkid: 3310, wkid: 3310 } },
@@ -593,5 +594,151 @@ describe('enrichDataset function', () => {
                 href: 'https://download-url/geojson'
             }
         ])
+    });
+
+    it('should set contactEmailFromMetadata as mailto link when metadata email exists', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            metadata: {
+                metadata: {
+                    dataIdInfo: {
+                        idPoC: {
+                            rpCntInfo: {
+                                cntAddress: {
+                                    eMailAdd: 'data.owner@example.com'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson,
+            { siteUrl: 'arcgis.com', portalUrl: 'portal.com', orgBaseUrl: 'qa.arcgis.com', orgTitle: 'QA Premium Alpha Hub' });
+
+        expect(properties.contactEmailFromMetadata).toBe('mailto:data.owner@example.com');
+    });
+
+    it('should leave contactEmailFromMetadata undefined for invalid metadata email', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            metadata: {
+                metadata: {
+                    dataIdInfo: {
+                        idPoC: {
+                            rpCntInfo: {
+                                cntAddress: {
+                                    eMailAdd: 'not-an-email'
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson,
+            { siteUrl: 'arcgis.com', portalUrl: 'portal.com', orgBaseUrl: 'qa.arcgis.com', orgTitle: 'QA Premium Alpha Hub' });
+
+        expect(properties.contactEmailFromMetadata).toBeUndefined();
+    });
+
+    it('should prefer first configured metadata path when multiple valid emails exist', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            metadata: {
+                metadata: {
+                    dataIdInfo: {
+                        idPoC: {
+                            rpCntInfo: {
+                                cntAddress: {
+                                    eMailAdd: 'first.path@example.com'
+                                }
+                            }
+                        },
+                        citRespParty: {
+                            rpCntInfo: {
+                                cntAddress: {
+                                    eMailAdd: 'second.path@example.com'
+                                }
+                            }
+                        }
+                    },
+                    mdContact: {
+                        rpCntInfo: {
+                            cntAddress: {
+                                eMailAdd: 'third.path@example.com'
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson,
+            { siteUrl: 'arcgis.com', portalUrl: 'portal.com', orgBaseUrl: 'qa.arcgis.com', orgTitle: 'QA Premium Alpha Hub' });
+
+        expect(properties.contactEmailFromMetadata).toBe('mailto:first.path@example.com');
+    });
+
+    it('should use first email when metadata path contains an email array', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            metadata: {
+                metadata: {
+                    dataIdInfo: {
+                        idPoC: {
+                            rpCntInfo: {
+                                cntAddress: {
+                                    eMailAdd: ['array.first@example.com', 'array.second@example.com']
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson,
+            { siteUrl: 'arcgis.com', portalUrl: 'portal.com', orgBaseUrl: 'qa.arcgis.com', orgTitle: 'QA Premium Alpha Hub' });
+
+        expect(properties.contactEmailFromMetadata).toBe('mailto:array.first@example.com');
     });
 }) 

@@ -46,7 +46,8 @@ export function enrichDataset(dataset: Record<string, any>, siteDetails: Record<
         downloadLink: concatUrlAndPath(siteUrl, `datasets/${identifier}`), // TODO: change downloadLink to something else as it is misleading
         agoLandingPage: getAgoLandingPageUrl(dataset.id, portalUrl),
         isLayer: isLayer(datasetAttr),
-        license: getDatasetLicense(datasetAttr)
+        license: getDatasetLicense(datasetAttr),
+        contactEmailFromMetadata: getContactEmailFromMetadata(datasetAttr),
     };
 
     if (isLayer(datasetAttr)) {
@@ -97,6 +98,33 @@ function getDatasetKeyword(dataset: HubDataset): string[] {
     }
 
     return tags;
+}
+
+function getContactEmailFromMetadata(datasetAttr: Record<string, any>) {
+    const contactEmailPaths = [
+        'metadata.metadata.dataIdInfo.idPoC.rpCntInfo.cntAddress.eMailAdd',
+        'metadata.metadata.dataIdInfo.citRespParty.rpCntInfo.cntAddress.eMailAdd',
+        'metadata.metadata.mdContact.rpCntInfo.cntAddress.eMailAdd',
+    ];
+
+    let email = contactEmailPaths
+        .map((path) => _.get(datasetAttr, path))
+        .find((value) => !_.isNil(value));
+
+    if(Array.isArray(email) && email.length > 1) {
+        email = email[0];
+    }
+
+    if(typeof email == 'string' && isEmail(email)){
+        email = `mailto:${email}`;
+        return email;
+    }
+}
+
+function isEmail(str: string) {
+  // Checks for: non-spaces + @ + non-spaces + . + non-spaces
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(str);
 }
 
 function localeToLang(locale: string) {

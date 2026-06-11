@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.5.0
+Added
+- Added new enriched fields
+
 ## 1.4.0
 Added
 - Cache
