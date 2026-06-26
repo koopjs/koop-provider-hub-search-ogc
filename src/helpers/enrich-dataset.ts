@@ -48,6 +48,7 @@ export function enrichDataset(dataset: Record<string, any>, siteDetails: Record<
         isLayer: isLayer(datasetAttr),
         license: getDatasetLicense(datasetAttr),
         contactEmailFromMetadata: getContactEmailFromMetadata(datasetAttr),
+        metadataLicense: getLicenseFromMetadata(datasetAttr),
     };
 
     if (isLayer(datasetAttr)) {
@@ -119,6 +120,13 @@ function getContactEmailFromMetadata(datasetAttr: Record<string, any>) {
         email = `mailto:${email}`;
         return email;
     }
+}
+
+function getLicenseFromMetadata(datasetAttr: Record<string, any>) {
+    const metadataLicensePath = 'metadata.metadata.dataIdInfo.resConst[0].LegConsts';
+    return _.get(datasetAttr, `${metadataLicensePath}.useConsts.RestrictCd.@_value`) == '005'
+        ? _.get(datasetAttr, `${metadataLicensePath}.useLimit`)
+        : undefined;
 }
 
 function isEmail(str: string) {

@@ -76,7 +76,8 @@ describe('enrichDataset function', () => {
             agoLandingPage: 'portal.arcgis.com/home/item.html?id=123a&sublayer=0',
             isLayer: true,
             license: '',
-            links: undefined
+            links: undefined,
+            metadataLicense: undefined,
         }
 
         const geojson = {
@@ -455,6 +456,104 @@ describe('enrichDataset function', () => {
 
         const { properties } = enrichDataset(geojson, hubsite);
         expect(properties.license).toBe('customLicense');
+    });
+
+    it('should return metadata useLimit when RestrictCd is 005', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            license: 'fallback-license',
+            metadata: {
+                metadata: {
+                    dataIdInfo: {
+                        resConst: [
+                            {
+                                LegConsts: {
+                                    useConsts: {
+                                        RestrictCd: {
+                                            '@_value': '005'
+                                        }
+                                    },
+                                    useLimit: 'metadata-only-license'
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson, hubsite);
+        expect(properties.metadataLicense).toBe('metadata-only-license');
+    });
+
+    it('metadataLicense should be undefined when RestrictCd is not 005', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            license: 'fallback-license',
+            metadata: {
+                metadata: {
+                    dataIdInfo: {
+                        resConst: [
+                            {
+                                LegConsts: {
+                                    useConsts: {
+                                        RestrictCd: {
+                                            '@_value': '006'
+                                        }
+                                    },
+                                    useLimit: 'metadata-only-license'
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson, hubsite);
+        expect(properties.metadataLicense).toBeUndefined();
+    });
+
+    it('metadataLicense should be undefined when RestrictCd is not available', () => {
+        const hubDataset = {
+            id: 'foo',
+            access: 'public',
+            size: 1,
+            type: 'CSV',
+            created: 1570747289000,
+            license: 'fallback-license',
+            metadata: {
+                metadata: {
+                    dataIdInfo: {}
+                }
+            }
+        };
+
+        const geojson = {
+            type: 'Feature',
+            properties: hubDataset
+        }
+
+        const { properties } = enrichDataset(geojson, hubsite);
+        expect(properties.metadataLicense).toBeUndefined();
     });
 
     it('should retrieve keywords from metadata if available', () => {

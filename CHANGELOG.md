@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.6.0
+Added
+- Added new enriched field `metadataLicense`
+
 ## 1.5.0
 Added
 - Added new enriched fields
