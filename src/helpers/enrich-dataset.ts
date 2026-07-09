@@ -104,7 +104,7 @@ function getDatasetKeyword(dataset: HubDataset): string[] {
 function getContactEmailFromMetadata(datasetAttr: Record<string, any>) {
     const contactEmailPaths = [
         'metadata.metadata.dataIdInfo.idPoC.rpCntInfo.cntAddress.eMailAdd',
-        'metadata.metadata.dataIdInfo.citRespParty.rpCntInfo.cntAddress.eMailAdd',
+        'metadata.metadata.dataIdInfo.idCitation.citRespParty.rpCntInfo.cntAddress.eMailAdd',
         'metadata.metadata.mdContact.rpCntInfo.cntAddress.eMailAdd',
     ];
 
