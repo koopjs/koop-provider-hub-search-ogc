@@ -1,5 +1,9 @@
 # CHANGELOG.md
 
+## 1.6.1
+Fixed
+- Fixed enriched field `contactEmailFromMetadata`
+
 ## 1.6.0
 Added
 - Added new enriched field `metadataLicense`
