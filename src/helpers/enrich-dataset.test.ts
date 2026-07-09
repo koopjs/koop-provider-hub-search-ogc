@@ -778,10 +778,12 @@ describe('enrichDataset function', () => {
                                 }
                             }
                         },
-                        citRespParty: {
-                            rpCntInfo: {
-                                cntAddress: {
-                                    eMailAdd: 'second.path@example.com'
+                        idCitation: {
+                            citRespParty: {
+                                rpCntInfo: {
+                                    cntAddress: {
+                                        eMailAdd: 'second.path@example.com'
+                                    }
                                 }
                             }
                         }
